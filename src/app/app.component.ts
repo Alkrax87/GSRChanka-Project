@@ -7,9 +7,6 @@ import { faGear } from "@fortawesome/free-solid-svg-icons";
   selector: 'app-root',
   imports: [RouterOutlet, FontAwesomeModule],
   template: `
-    <h1 class="text-green-700 text-3xl font-bold underline">
-      <fa-icon [icon]="Gear"></fa-icon> {{ title }}
-    </h1>
     <router-outlet></router-outlet>
   `,
   styles: ``,
