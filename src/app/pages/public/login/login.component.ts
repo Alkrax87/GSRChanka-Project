@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { NavbarComponent } from "../../../components/navbar/navbar.component";
 import { faRightToBracket } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -7,7 +8,7 @@ import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
-  imports: [NavbarComponent, FontAwesomeModule],
+  imports: [NavbarComponent, FontAwesomeModule, ReactiveFormsModule],
   template: `
     <div class="w-full h-screen">
       <div class="relative h-screen">
@@ -33,26 +34,28 @@ import { Router } from '@angular/router';
               <h1 class="text-main font-bold text-3xl">Bienvenido!</h1>
               <p class="text-neutral-400 text-sm">Inicia sesión usando tu usuario y contraseña.</p>
               <!-- Form -->
-              <div class="flex flex-col gap-4 pt-8">
-                <div>
-                  <label for="username" class="relative">
-                    <input id="username" type="text" placeholder="" autocomplete="false" class="bg-white text-gray-500 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none"/>
-                    <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Usuario</span>
-                  </label>
-                </div>
-                <div>
-                  <label for="password" class="relative">
-                    <input id="password" type="password" placeholder="" autocomplete="false" class="bg-white text-gray-500 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none"/>
-                    <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Contraseña</span>
-                  </label>
-                </div>
-              </div>
-              <!-- Error -->
-              <p class="text-red-500 text-sm h-8 content-center">{{ errorMessage }}</p>
-              <!-- Button -->
-              <button (click)="onLogin('', '')" class="bg-main hover:bg-main-hover text-white shadow-sm w-full font-semibold px-4 py-3 rounded-full cursor-pointer outline-none">
-                <fa-icon [icon]="Login"></fa-icon> &nbsp;&nbsp;Ingresar
-              </button>
+               <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+                 <div class="flex flex-col gap-4 pt-8">
+                   <div>
+                     <label for="username" class="relative">
+                       <input id="username" type="text" formControlName="username" placeholder="" autocomplete="false" class="bg-white text-gray-500 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none"/>
+                       <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Usuario</span>
+                     </label>
+                   </div>
+                   <div>
+                     <label for="password" class="relative">
+                       <input id="password" type="password" formControlName="password" placeholder="" autocomplete="false" class="bg-white text-gray-500 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none"/>
+                       <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Contraseña</span>
+                     </label>
+                   </div>
+                 </div>
+                 <!-- Error -->
+                 <p class="text-red-500 text-sm h-8 content-center">{{ errorMessage }}</p>
+                 <!-- Button -->
+                 <button type="submit" class="bg-main hover:bg-main-hover text-white shadow-sm w-full font-semibold px-4 py-3 rounded-full cursor-pointer outline-none">
+                   <fa-icon [icon]="Login"></fa-icon> &nbsp;&nbsp;Ingresar
+                 </button>
+               </form>
             </div>
           </div>
         </div>
@@ -62,14 +65,35 @@ import { Router } from '@angular/router';
   styles: ``,
 })
 export class LoginComponent {
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
+  loginForm!: FormGroup;
   errorMessage: string = '';
   Login = faRightToBracket;
 
-  async onLogin(email: string, password: string) {
+  ngOnInit() {
+    this.loginForm = this.fb.group({
+      username: ['', Validators.required],
+      password: ['', Validators.required],
+    });
+  }
+
+  async onLogin() {
+    if (this.loginForm.invalid) {
+      this.errorMessage = 'Por favor, completa todos los campos.';
+      return;
+    }
+
+    this.errorMessage = '';
+
+    const { username, password } = this.loginForm.value;
+
     try {
-      const userCredential = await this.authService.login(email, password);
+      const userCredential = await this.authService.login(username, password);
       this.router.navigate(['/portal']);
     } catch (error: any) {
       this.errorMessage = 'El usuario o contraseña son incorrectos.';
