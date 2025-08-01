@@ -1,23 +1,23 @@
 import { Component } from '@angular/core';
-import { AuthService } from '../../../services/auth.service';
 import { CommonModule } from '@angular/common';
+import { SidebarComponent } from "../../../components/sidebar/sidebar.component";
+import { TopbarComponent } from "../../../components/topbar/topbar.component";
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-main',
-  imports: [CommonModule],
+  imports: [CommonModule, SidebarComponent, TopbarComponent, RouterOutlet],
   template: `
-    <div class="w-full h-screen flex items-center justify-center">
-      <button (click)="logOut()" class="bg-red-600 hover:bg-opacity-90 text-white border rounded-full px-4 py-2 outline-none">
-        Cerrar Sesión
-      </button>
+  <div class="flex h-screen overflow-hidden">
+    <app-sidebar></app-sidebar>
+    <div class="flex flex-col flex-1 ml-64 h-full">
+      <app-topbar></app-topbar>
+      <div class="flex-1 overflow-y-auto">
+       <router-outlet></router-outlet>
+      </div>
     </div>
+  </div>
   `,
   styles: ``,
 })
-export class MainComponent {
-  constructor(private authService: AuthService) {}
-
-  logOut() {
-    this.authService.logOut();
-  }
-}
+export class MainComponent {}
