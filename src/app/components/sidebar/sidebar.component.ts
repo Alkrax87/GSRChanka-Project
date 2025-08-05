@@ -3,10 +3,11 @@ import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faAngleDown, faArrowRightFromBracket, faBuilding, faHome, faMagnifyingGlass, faUser } from '@fortawesome/free-solid-svg-icons';
+import { LogOutComponent } from "../log-out/log-out.component";
 
 @Component({
   selector: 'app-sidebar',
-  imports: [FontAwesomeModule, RouterLink, RouterLinkActive, CommonModule],
+  imports: [FontAwesomeModule, RouterLink, RouterLinkActive, CommonModule, LogOutComponent],
   template: `
     <div class="flex flex-col w-64 bg-neutral-800 h-[100vh] p-2 fixed left-0 top-0 text-white z-50">
       <!-- Title -->
@@ -59,16 +60,22 @@ import { faAngleDown, faArrowRightFromBracket, faBuilding, faHome, faMagnifyingG
           <p class="text-xs">{{ user.username }}</p>
         </div>
         <div class="flex items-center justify-center">
-          <button class="hover:bg-white hover hover:text-neutral-800 duration-300 rounded-lg w-8 h-8">
+          <button (click)="isLogOutModalOpen = true" [ngClass]="{'bg-white text-neutral-800': isLogOutModalOpen}" class="hover:bg-white hover hover:text-neutral-800 duration-300 rounded-lg w-8 h-8">
             <fa-icon [icon]="LogOut"></fa-icon>
           </button>
         </div>
       </div>
     </div>
+
+    @if (isLogOutModalOpen) {
+      <app-log-out (cancel)="isLogOutModalOpen = false"></app-log-out>
+    }
   `,
   styles: ``,
 })
 export class SidebarComponent {
+  isLogOutModalOpen = false;
+
   user: { name: string, lastname: string, username: string } = {
     name: 'John',
     lastname: 'Doe',
