@@ -6,7 +6,7 @@ import { faBell, faGear, faWindowMaximize } from '@fortawesome/free-solid-svg-ic
   selector: 'app-topbar',
   imports: [FontAwesomeModule],
   template: `
-    <div class="h-16 w-full bg-neutral-100 shadow-md text-lg flex items-center pl-2 pr-4 py-2 flex-shrink-0 sticky top-0 z-50">
+    <div class="h-16 w-full bg-neutral-100 shadow-md text-lg flex items-center pl-2 pr-4 py-2 flex-shrink-0 sticky top-0 z-30">
       <div class="flex items-center justify-center -rotate-90 cursor-pointer hover:bg-neutral-200 rounded-lg w-7 h-7">
         <fa-icon [icon]="Toggle" class="text-neutral-700"></fa-icon>
       </div>
