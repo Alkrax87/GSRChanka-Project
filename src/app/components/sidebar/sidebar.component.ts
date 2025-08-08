@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faAngleDown, faAngleRight, faArrowRightFromBracket, faBuilding, faHome, faMagnifyingGlass, faUser } from '@fortawesome/free-solid-svg-icons';
@@ -20,18 +20,20 @@ import { LogOutComponent } from "../log-out/log-out.component";
           class="flex items-center gap-2 rounded-lg cursor-pointer duration-300 outline-none"
           [ngClass]="{ 'p-2 hover:bg-neutral-700 h-14': isOpen, 'h-8 my-3 pl-1': !isOpen }"
         >
-          <img src="https://placehold.co/40x40" alt="BRAND-logo"
+          <img
+            loading="lazy"
+            src="https://placehold.co/40x40" alt="BRAND-logo"
             class="rounded-md duration-300"
             [ngClass]="{ 'w-9 h-9': isOpen, 'w-8 h-8': !isOpen }"
           >
           @if (isOpen) {
-            <p><span class="font-bold">GSR</span>Chanka</p>
+            <p class="text-xl"><span class="font-bold">GSR</span>Chanka</p>
           }
         </div>
       </div>
       <!-- Button -->
       <div class="relative">
-        <div (click)="isOpen = !isOpen" class="bg-main hover:bg-main-hover cursor-pointer flex justify-center items-center w-8 h-8 absolute rounded-full -top-4 -right-4">
+        <div (click)="changeSidebarStatus()" class="bg-main hover:bg-main-hover cursor-pointer flex justify-center items-center w-8 h-8 absolute rounded-full -top-4 -right-4">
           <fa-icon class="duration-300" [icon]="ArrowClose" [ngClass]="{ 'rotate-180' : isOpen}"></fa-icon>
         </div>
       </div>
@@ -102,9 +104,10 @@ import { LogOutComponent } from "../log-out/log-out.component";
       <div class="p-2">
          <div class="flex items-center py-2 h-12 gap-2 duration-300" [ngClass]="{ 'px-2': isOpen }">
             <img
-              src="https://avatar.iran.liara.run/public"
+              loading="lazy"
+              src="https://placehold.co/32x32"
               alt="USER-logo"
-              class="rounded-md w-8 h-8"
+              class="rounded-full w-8 h-8"
               [ngClass]="{ 'cursor-pointer': !isOpen }"
               (click)="!isOpen && (isLogOutModalOpen = true)"
             >
@@ -130,12 +133,19 @@ import { LogOutComponent } from "../log-out/log-out.component";
   styles: ``,
 })
 export class SidebarComponent {
+  @Output() sidebarStatus = new EventEmitter<boolean>();
   isLogOutModalOpen = false;
 
+  isOpen: boolean = true;
+
+  ArrowDown = faAngleDown;
+  ArrowClose = faAngleRight;
+  LogOut = faArrowRightFromBracket;
+
   user: { name: string, lastname: string, username: string } = {
-    name: 'John',
-    lastname: 'Doe',
-    username: 'jdoe',
+    name: 'Paco',
+    lastname: 'Bazán',
+    username: 'pbazan',
   }
 
   sections = [
@@ -182,9 +192,8 @@ export class SidebarComponent {
     });
   }
 
-  isOpen: boolean = true;
-
-  ArrowDown = faAngleDown;
-  ArrowClose = faAngleRight;
-  LogOut = faArrowRightFromBracket;
+  changeSidebarStatus() {
+    this.isOpen = !this.isOpen;
+    this.sidebarStatus.emit(this.isOpen);
+  }
 }
