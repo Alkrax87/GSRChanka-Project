@@ -1,14 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import {
-  addDoc,
-  collection,
-  collectionData,
-  deleteDoc,
-  doc,
-  Firestore,
-  updateDoc,
-} from '@angular/fire/firestore';
-import { map, Observable } from 'rxjs';
+import { addDoc, collection, collectionData, deleteDoc, doc, Firestore, updateDoc } from '@angular/fire/firestore';
+import { Observable } from 'rxjs';
 import { Rol } from '../interfaces/rol';
 
 @Injectable({
