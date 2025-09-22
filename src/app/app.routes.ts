@@ -7,6 +7,7 @@ import { LandingComponent } from './pages/public/landing/landing.component';
 import { LoginComponent } from './pages/public/login/login.component';
 import { TramitesComponent } from './pages/public/tramites/tramites.component';
 import { SeguimientoComponent } from './pages/public/seguimiento/seguimiento.component';
+import { AreasComponent } from './pages/portal/areas/areas.component';
 
 const redirectLoggedIn = () => redirectLoggedInTo(['portal/home']);
 const redirectUnauthorizedUser = () => redirectUnauthorizedTo(['login']);
@@ -27,6 +28,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: { authGuardPipe: redirectUnauthorizedUser },
     children: [
+      { path: 'area', component:  AreasComponent},
       { path: 'home', component: HomeComponent },
       { path: 'usuario', component: UsuarioComponent },
     ],
