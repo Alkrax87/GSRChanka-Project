@@ -9,6 +9,7 @@ import { TramitesComponent } from './pages/public/tramites/tramites.component';
 import { SeguimientoComponent } from './pages/public/seguimiento/seguimiento.component';
 import { ListaComponent } from './pages/portal/usuario/lista/lista.component';
 import { RolesComponent } from './pages/portal/usuario/roles/roles.component';
+import { AreasComponent } from './pages/portal/areas/areas.component';
 
 const redirectLoggedIn = () => redirectLoggedInTo(['portal/home']);
 const redirectUnauthorizedUser = () => redirectUnauthorizedTo(['login']);
@@ -39,7 +40,7 @@ export const routes: Routes = [
           { path: 'roles', component: RolesComponent },
         ]
       },
-      { path: 'areas', component: HomeComponent },
+      { path: 'area', component:  AreasComponent},
       { path: 'seguimiento', component: HomeComponent },
     ],
   },
