@@ -2,16 +2,16 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
-  selector: 'app-usuario',
+  selector: 'app-seguridad',
   imports: [RouterOutlet],
   template: `
     <p>
-      usuario works!
+      seguridad works!
     </p>
     <router-outlet></router-outlet>
   `,
   styles: ``
 })
-export class UsuarioComponent {
+export class SeguridadComponent {
 
 }
