@@ -163,7 +163,7 @@ export class SidebarComponent {
           icon: faUser,
           route: './usuario',
           subroutes: [
-            { name: 'Lista', route: './usuario/lista' },
+            { name: 'Usuarios', route: './usuario/usuarios' },
             { name: 'Roles', route: './usuario/roles' },
           ],
           subRoutesStatus: false,
