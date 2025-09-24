@@ -41,10 +41,10 @@ import { faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faEdit, faEy
       <table class="w-full">
         <thead class="bg-main text-white">
           <tr class="h-12">
-            @for (header of headers; track $index) {
-              <th (click)="sortData(header)" class="cursor-pointer text-start px-3">
-                {{ header }}
-                @if (sortColumn === header) {
+            @for (header of tableConstructor; track $index) {
+              <th (click)="sortData(header.key)" class="cursor-pointer text-start px-3">
+                {{ header.label }}
+                @if (sortColumn === header.key) {
                   @if (sortDirection === 'asc') {
                     <fa-icon class="text-sm m-0.5" [icon]="Ascendent"></fa-icon>
                   } @else {
@@ -59,19 +59,19 @@ import { faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faEdit, faEy
         <tbody>
           @for (row of paginatedData; track $index) {
             <tr class="h-10 hover:bg-neutral-100">
-              @for (header of headers; track $index) {
-                <td class="px-3">{{ row[header] }}</td>
+              @for (header of tableConstructor; track $index) {
+                <td class="px-3">{{ row[header.key] }}</td>
               }
               <td>
                 <div class="flex items-center justify-center gap-4">
                   <button (click)="onShow.emit(row)" class="text-main" title="Ver">
-                    <fa-icon [icon]="Eye"></fa-icon>
+                    <fa-icon [icon]="Show"></fa-icon>
                   </button>
                   <button (click)="onEdit.emit(row)" class="text-yellow-400" title="Editar">
                     <fa-icon [icon]="Edit"></fa-icon>
                   </button>
                   <button (click)="onDelete.emit(row)"  class="text-red-600"title="Eliminar">
-                    <fa-icon [icon]="Trash"></fa-icon>
+                    <fa-icon [icon]="Delete"></fa-icon>
                   </button>
                 </div>
               </td>
@@ -113,10 +113,9 @@ import { faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faEdit, faEy
   `,
   styles: ``,
 })
-export class TableComponent implements OnInit, OnChanges{
-  @Input() headers: string[] = [];
+export class TableComponent {
+  @Input() tableConstructor: { key: string, label: string}[] = [];
   @Input() data: any[] = [];
-
   @Output() onShow = new EventEmitter<any>();
   @Output() onEdit = new EventEmitter<any>();
   @Output() onDelete = new EventEmitter<any>();
@@ -130,9 +129,9 @@ export class TableComponent implements OnInit, OnChanges{
   Previous = faChevronLeft;
   Next = faChevronRight;
   Search = faSearch;
-  Eye = faEye;
+  Show = faEye;
   Edit = faEdit;
-  Trash = faTrash;
+  Delete = faTrash;
 
   currentPage = 1;
   pageSize = 10;
