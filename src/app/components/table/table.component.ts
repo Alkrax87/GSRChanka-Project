@@ -1,11 +1,10 @@
-import { Component, EventEmitter, Input, Output, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faEdit, faEye, faSearch, faTrash} from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-table',
-  standalone: true,
   imports: [CommonModule, FontAwesomeModule],
   template: `
     <!-- Seach and Selector -->
@@ -95,12 +94,9 @@ import { faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faEdit, faEy
         </button>
         <!-- Pages -->
         <div class="flex gap-0.5">
-          @for (page of [].constructor(totalPages); let i = $index; track $index) {
-            <button (click)="goToPage(i + 1)"
-              [ngClass]="{'bg-main text-white': currentPage === (i+1)}"
-              class="border w-8 h-8 rounded-full hover:bg-main hover:text-white duration-300"
-            >
-              {{ i + 1 }}
+          @for (page of [].constructor(totalPages); track $index) {
+            <button (click)="goToPage($index + 1)" [ngClass]="{'bg-main text-white': currentPage === ($index + 1)}" class="border w-8 h-8 rounded-full outline-none hover:bg-main hover:text-white duration-300">
+              {{ $index + 1 }}
             </button>
           }
         </div>
@@ -136,7 +132,6 @@ export class TableComponent {
   currentPage = 1;
   pageSize = 10;
   totalPages = 1;
-
   startRecord = 0;
   endRecord = 0;
 
@@ -146,11 +141,13 @@ export class TableComponent {
   ngOnInit() {
     this.applyFilters();
   }
+
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['data'] || changes['headers']) {
+    if (changes['data'] || changes['tableConstructor']) {
       this.applyFilters();
     }
   }
+
   onSearch(event: Event) {
     const target = event.target as HTMLInputElement;
     this.searchTerm = target.value;
@@ -160,15 +157,15 @@ export class TableComponent {
   onPageSizeChange(event: Event) {
     const target = event.target as HTMLSelectElement;
     this.pageSize = +target.value;
-    this.currentPage = 1; // Reiniciar a la primera página
+    this.currentPage = 1;
     this.applyFilters();
   }
 
   applyFilters() {
     // Filtrado por búsqueda
     this.filteredData = this.data.filter(row =>
-      Object.values(row).some(val =>
-        val?.toString().toLowerCase().includes(this.searchTerm.toLowerCase())
+      this.tableConstructor.some(col =>
+        row[col.key]?.toString().toLowerCase().includes(this.searchTerm.toLowerCase())
       )
     );
 
@@ -192,8 +189,8 @@ export class TableComponent {
     }
 
     this.filteredData.sort((a, b) => {
-      const valA = a[header];
-      const valB = b[header];
+      const valA = a[header]?.toString().toLowerCase() ?? '';
+      const valB = b[header]?.toString().toLowerCase() ?? '';
 
       if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
       if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
@@ -208,7 +205,7 @@ export class TableComponent {
     const end = start + this.pageSize;
     this.paginatedData = this.filteredData.slice(start, end);
     this.startRecord = start;
-  this.endRecord = Math.min(end, this.filteredData.length);
+    this.endRecord = Math.min(end, this.filteredData.length);
   }
 
   prevPage() {
@@ -224,9 +221,9 @@ export class TableComponent {
       this.updatePagination();
     }
   }
+
   goToPage(page: number) {
-  this.currentPage = page;
-  this.updatePagination();
+    this.currentPage = page;
+    this.updatePagination();
   }
-  
 }
