@@ -14,11 +14,11 @@ import { debounceTime, distinctUntilChanged, map, startWith } from 'rxjs';
   template: `
     <div class="flex flex-col gap-5 p-2 sm:p-10 select-none">
       <p class="text-neutral-400 text-xs font-semibold">
-        <span class="text-main">Usuarios</span> &nbsp;&nbsp;/&nbsp;&nbsp; Roles
+        <span class="text-main">Seguridad</span> &nbsp;&nbsp;/&nbsp;&nbsp; Roles
       </p>
       <div class="flex items-center -mt-5 justify-between">
         <h1 class="text-main text-4xl font-bold">ROLES</h1>
-        <button (click)="openCreate()" class="bg-main px-4 py-2 text-white rounded-full">
+        <button (click)="openCreate()" class="bg-main px-4 hover:bg-main-hover  py-2 text-white rounded-full">
           <fa-icon [icon]="Add"></fa-icon>&nbsp; Agregar Rol
         </button>
       </div>

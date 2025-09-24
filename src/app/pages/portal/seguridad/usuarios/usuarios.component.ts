@@ -13,7 +13,7 @@ import { TableComponent } from "../../../../components/table/table.component";
   template: `
     <div class="flex flex-col gap-5 p-2 sm:p-10 select-none">
       <p class="text-neutral-400 text-xs font-semibold">
-        <span class="text-main">Usuarios</span> &nbsp;&nbsp;/&nbsp;&nbsp; Usuarios
+        <span class="text-main">Seguridad</span> &nbsp;&nbsp;/&nbsp;&nbsp; Usuarios
       </p>
       <div class="flex items-center -mt-5 justify-between">
         <h1 class="text-main text-4xl font-bold">USUARIOS</h1>
