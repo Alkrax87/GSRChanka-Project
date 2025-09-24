@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faAngleDown, faAngleRight, faArrowRightFromBracket, faBuilding, faHome, faMagnifyingGlass, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faAngleDown, faAngleRight, faArrowRightFromBracket, faBuilding, faHome, faMagnifyingGlass, faUserShield } from '@fortawesome/free-solid-svg-icons';
 import { LogOutComponent } from "../log-out/log-out.component";
 
 @Component({
@@ -159,12 +159,12 @@ export class SidebarComponent {
         },
         {
           multiRoutes: true,
-          name: 'Usuario',
-          icon: faUser,
-          route: './usuario',
+          name: 'Seguridad',
+          icon: faUserShield,
+          route: './seguridad',
           subroutes: [
-            { name: 'Usuarios', route: './usuario/usuarios' },
-            { name: 'Roles', route: './usuario/roles' },
+            { name: 'Usuarios', route: './seguridad/usuarios' },
+            { name: 'Roles', route: './seguridad/roles' },
           ],
           subRoutesStatus: false,
         },
