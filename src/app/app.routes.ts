@@ -7,7 +7,7 @@ import { LandingComponent } from './pages/public/landing/landing.component';
 import { LoginComponent } from './pages/public/login/login.component';
 import { TramitesComponent } from './pages/public/tramites/tramites.component';
 import { SeguimientoComponent } from './pages/public/seguimiento/seguimiento.component';
-import { ListaComponent } from './pages/portal/usuario/lista/lista.component';
+import { UsuariosComponent } from './pages/portal/usuario/usuarios/usuarios.component';
 import { RolesComponent } from './pages/portal/usuario/roles/roles.component';
 import { AreasComponent } from './pages/portal/areas/areas.component';
 
@@ -36,7 +36,7 @@ export const routes: Routes = [
         path: 'usuario',
         component: UsuarioComponent,
         children: [
-          { path: 'lista', component: ListaComponent },
+          { path: 'usuarios', component: UsuariosComponent },
           { path: 'roles', component: RolesComponent },
         ]
       },
