@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Auth, createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword, signOut } from "@angular/fire/auth";
+import { Auth, browserSessionPersistence, createUserWithEmailAndPassword, getAuth, setPersistence, signInWithEmailAndPassword, signOut } from "@angular/fire/auth";
 import { Router } from '@angular/router';
 
 @Injectable({
@@ -9,22 +9,22 @@ export class AuthService {
   constructor(private auth: Auth, private router: Router) {}
 
   async registerUser(email: string, password: string) {
-    const auth = getAuth();
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      await createUserWithEmailAndPassword(this.auth, email, password);
     } catch (error) {
       throw error;
     }
   }
 
   login(email: string, password: string) {
-    return signInWithEmailAndPassword(this.auth, email + '@gsrchanka.com', password);
+    return setPersistence(this.auth, browserSessionPersistence).then(() => {
+      return signInWithEmailAndPassword(this.auth, email + '@gsrchanka.com', password);
+    });
   }
 
   async logOut() {
-    const auth = getAuth();
     try {
-      await signOut(auth);
+      await signOut(this.auth);
 
       this.router.navigate(['/login']);
     } catch (error) {
