@@ -6,10 +6,11 @@ import { faPenToSquare, faPlus, faTrash } from '@fortawesome/free-solid-svg-icon
 import { UsuarioModalComponent } from "../../../../components/usuario-modal/usuario-modal.component";
 import { ConfirmacionEliminarModalComponent } from "../../../../components/confirmacion-eliminar-modal/confirmacion-eliminar-modal.component";
 import { TableComponent } from "../../../../components/table/table.component";
+import { UsuarioProfileComponent } from "../../../../components/usuario-profile/usuario-profile.component";
 
 @Component({
   selector: 'app-usuarios',
-  imports: [FontAwesomeModule, UsuarioModalComponent, ConfirmacionEliminarModalComponent, TableComponent],
+  imports: [FontAwesomeModule, UsuarioModalComponent, ConfirmacionEliminarModalComponent, TableComponent, UsuarioProfileComponent],
   template: `
     <div class="flex flex-col gap-5 p-2 sm:p-10 select-none">
       <p class="text-neutral-400 text-xs font-semibold">
@@ -24,6 +25,9 @@ import { TableComponent } from "../../../../components/table/table.component";
       <app-table
         [tableConstructor]="tableHeaders"
         [data]="usuarios()"
+        (onShow)="openShow($event)"
+        (onEdit)="openEdit($event)"
+        (onDelete)="openDelete($event)"
       ></app-table>
     </div>
 
@@ -32,6 +36,13 @@ import { TableComponent } from "../../../../components/table/table.component";
         [usuario]="selectedUsuario()"
         (close)="isUserModalOpen.set(false)"
       ></app-usuario-modal>
+    }
+
+    @if (isUserProfileOpen()) {
+      <app-usuario-profile
+        [usuario]="selectedUsuario()!"
+        (close)="isUserProfileOpen.set(false)"
+      ></app-usuario-profile>
     }
 
     @if (isConfirmOpen()) {
@@ -60,6 +71,7 @@ export class UsuariosComponent {
   // Signals
   usuarios = signal<Usuario[]>([]);
   isUserModalOpen = signal(false);
+  isUserProfileOpen = signal(false);
   isConfirmOpen = signal(false);
   selectedUsuario = signal<Usuario | null>(null);
 
@@ -79,6 +91,11 @@ export class UsuariosComponent {
   openCreate() {
     this.selectedUsuario.set(null);
     this.isUserModalOpen.set(true);
+  }
+
+  openShow(usuario: Usuario) {
+    this.selectedUsuario.set(usuario);
+    this.isUserProfileOpen.set(true);
   }
 
   openEdit(usuario: Usuario) {
