@@ -1,12 +1,15 @@
 import { Component, inject, signal } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { UsuariosService } from '../../../../services/usuarios.service';
-import { Usuario } from '../../../../interfaces/usuario';
 import { faPenToSquare, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { UsuarioModalComponent } from "../../../../components/usuario-modal/usuario-modal.component";
-import { ConfirmacionEliminarModalComponent } from "../../../../components/confirmacion-eliminar-modal/confirmacion-eliminar-modal.component";
-import { TableComponent } from "../../../../components/table/table.component";
-import { UsuarioProfileComponent } from "../../../../components/usuario-profile/usuario-profile.component";
+import { UsuariosService } from '../../../../services/usuarios.service';
+import { RolesService } from '../../../../services/roles.service';
+import { combineLatest } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TableComponent } from '../../../../components/table/table.component';
+import { UsuarioModalComponent } from '../../../../components/usuario-modal/usuario-modal.component';
+import { UsuarioProfileComponent } from '../../../../components/usuario-profile/usuario-profile.component';
+import { ConfirmacionEliminarModalComponent } from '../../../../components/confirmacion-eliminar-modal/confirmacion-eliminar-modal.component';
+import { Usuario } from '../../../../interfaces/usuario';
 
 @Component({
   selector: 'app-usuarios',
@@ -57,15 +60,16 @@ import { UsuarioProfileComponent } from "../../../../components/usuario-profile/
 })
 export class UsuariosComponent {
   private usuariosService = inject(UsuariosService);
+  private rolesService = inject(RolesService);
 
   tableHeaders = [
-    {key: 'dni', label: 'DNI'},
-    {key: 'nombres', label: 'Nombres'},
-    {key: 'apellidos', label: 'Apellidos'},
-    {key: 'telefono', label: 'Teléfono'},
-    {key: 'correo', label: 'Correo'},
-    {key: 'rol', label: 'Rol'},
-    {key: 'usuario', label: 'Usuario'},
+    { key: 'dni', label: 'DNI' },
+    { key: 'nombres', label: 'Nombres' },
+    { key: 'apellidos', label: 'Apellidos' },
+    { key: 'telefono', label: 'Teléfono' },
+    { key: 'correo', label: 'Correo' },
+    { key: 'rol', label: 'Rol' },
+    { key: 'usuario', label: 'Usuario' },
   ];
 
   // Signals
@@ -80,11 +84,23 @@ export class UsuariosComponent {
   Edit = faPenToSquare;
   Delete = faTrash;
 
-  ngOnInit() {
-    this.usuariosService.getUsers().subscribe({
-      next: (data) => {
-        this.usuarios.set(data);
-      }
+  constructor() {
+    combineLatest([
+      this.usuariosService.getUsers(),
+      this.rolesService.getRoles(),
+    ]).pipe(takeUntilDestroyed()).subscribe({
+      next: ([usuarios, roles]) => {
+        this.usuarios.set(
+          usuarios.map((usuario) => {
+            const rol = roles.find((rol) => rol.id === usuario.rol);
+
+            return {
+              ...usuario,
+              rol: rol?.nombre ?? 'Sin rol',
+            };
+          })
+        );
+      },
     });
   }
 
