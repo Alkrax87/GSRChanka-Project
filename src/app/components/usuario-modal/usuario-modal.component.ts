@@ -54,7 +54,7 @@ import { Rol } from '../../interfaces/rol';
                   <div class="rounded-lg overflow-hidden">
                     <option value="" disabled selected hidden></option>
                     @for (rol of roles; track $index) {
-                      <option [value]="rol.nombre" class="hover:bg-main hover:text-red-700 h-20">{{ rol.nombre }}</option>
+                      <option [value]="rol.id" class="hover:bg-main hover:text-red-700 h-20">{{ rol.nombre }}</option>
                     }
                   </div>
                 </select>
