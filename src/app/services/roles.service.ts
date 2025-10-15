@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { addDoc, collection, collectionData, deleteDoc, doc, Firestore, updateDoc } from '@angular/fire/firestore';
+import { addDoc, collection, collectionData, deleteDoc, doc, Firestore, increment, updateDoc } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { Rol } from '../interfaces/rol';
 
@@ -26,5 +26,12 @@ export class RolesService {
   deleteRol(id: string) {
     const rolDoc = doc(this.firestore, `roles/${id}`);
     return deleteDoc(rolDoc);
+  }
+
+  changeRolUserCounter(id: string, change: number) {
+    const rolDoc = doc(this.firestore, `roles/${id}`);
+    return updateDoc(rolDoc, {
+      usuarios: increment(change),
+    });
   }
 }
