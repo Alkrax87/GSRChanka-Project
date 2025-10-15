@@ -10,6 +10,7 @@ import { UsuarioModalComponent } from '../../../../components/usuario-modal/usua
 import { UsuarioProfileComponent } from '../../../../components/usuario-profile/usuario-profile.component';
 import { ConfirmacionEliminarModalComponent } from '../../../../components/confirmacion-eliminar-modal/confirmacion-eliminar-modal.component';
 import { Usuario } from '../../../../interfaces/usuario';
+import { Rol } from '../../../../interfaces/rol';
 
 @Component({
   selector: 'app-usuarios',
@@ -40,14 +41,12 @@ import { Usuario } from '../../../../interfaces/usuario';
         (close)="isUserModalOpen.set(false)"
       ></app-usuario-modal>
     }
-
     @if (isUserProfileOpen()) {
       <app-usuario-profile
         [usuario]="selectedUsuario()!"
         (close)="isUserProfileOpen.set(false)"
       ></app-usuario-profile>
     }
-
     @if (isConfirmOpen()) {
       <app-confirmacion-eliminar-modal
         [message]="'¿Eliminar al usuario ' + selectedUsuario()!.usuario + '?'"
@@ -74,6 +73,7 @@ export class UsuariosComponent {
 
   // Signals
   usuarios = signal<Usuario[]>([]);
+  roles = signal<Rol[]>([]);
   isUserModalOpen = signal(false);
   isUserProfileOpen = signal(false);
   isConfirmOpen = signal(false);
@@ -100,6 +100,7 @@ export class UsuariosComponent {
             };
           })
         );
+        this.roles.set(roles);
       },
     });
   }
@@ -124,9 +125,13 @@ export class UsuariosComponent {
     this.isConfirmOpen.set(true);
   }
 
-  confirmDelete() {
+  async confirmDelete() {
     if (this.selectedUsuario()?.id) {
-      this.usuariosService.deleteUser(this.selectedUsuario()!.id!);
+      const rolId = this.roles().find((rol) => rol.nombre === this.selectedUsuario()!.rol)?.id;
+      if (rolId !== undefined) {
+        await this.rolesService.changeRolUserCounter(rolId!, -1);
+      }
+      await this.usuariosService.deleteUser(this.selectedUsuario()!.id!);
     }
     this.isConfirmOpen.set(false);
   }
