@@ -53,7 +53,7 @@ import { Rol } from '../../interfaces/rol';
                 <select id="rol" formControlName="rol" placeholder="" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-pointer px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
                   <option value="" disabled selected hidden></option>
                   @for (rol of roles; track $index) {
-                    <option [value]="rol.nombre" class="hover:bg-main hover:text-red-700 h-20">{{ rol.nombre }}</option>
+                    <option [value]="rol.id" class="hover:bg-main hover:text-red-700 h-20">{{ rol.nombre }}</option>
                   }
                 </select>
                 <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Rol</span>
@@ -108,12 +108,13 @@ export class UsuarioModalComponent {
   Edit = faPenToSquare;
 
   ngOnInit() {
-    if (this.usuario) {
-      this.form.patchValue(this.usuario);
-    }
     this.rolesService.getRoles().subscribe({
       next: (data) => {
         this.roles = data;
+        if (this.usuario) {
+          const rolId = this.roles.find(r => r.nombre === this.usuario!.rol)?.id;
+          this.form.patchValue({ ...this.usuario, rol: rolId });
+        }
       }
     });
   }
@@ -122,23 +123,21 @@ export class UsuarioModalComponent {
     if (this.form.invalid) return;
 
     const value = this.form.value as Usuario;
-    const newRolId = this.roles.find(rol => rol.nombre === value.rol)?.id;
-    value.rol = newRolId!;
 
     if (this.usuario?.id) {
       const oldRolId = this.roles.find((rol) => rol.nombre === this.usuario?.rol)?.id;
 
       await this.usuariosService.updateUser(this.usuario.id, value);
 
-      if (oldRolId !== newRolId) {
+      if (oldRolId !== value.rol) {
         await this.rolesService.changeRolUserCounter(oldRolId!, -1);
-        await this.rolesService.changeRolUserCounter(newRolId!, 1)
+        await this.rolesService.changeRolUserCounter(value.rol!, 1)
       }
 
       this.close.emit();
     } else {
       await this.usuariosService.addUser(value);
-      await this.rolesService.changeRolUserCounter(newRolId!, 1);
+      await this.rolesService.changeRolUserCounter(value.rol!, 1);
 
       this.close.emit();
     }
