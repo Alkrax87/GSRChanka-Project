@@ -1,11 +1,13 @@
 import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPenToSquare, faPlus } from '@fortawesome/free-solid-svg-icons';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { AuthService } from '../../services/auth.service';
 import { UsuariosService } from '../../services/usuarios.service';
 import { RolesService } from '../../services/roles.service';
 import { Usuario } from '../../interfaces/usuario';
 import { Rol } from '../../interfaces/rol';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-usuario-modal',
@@ -59,12 +61,26 @@ import { Rol } from '../../interfaces/rol';
                 <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Rol</span>
               </label>
             </div>
-            <div>
-              <label for="usuario" class="relative">
-                <input id="usuario" type="text" formControlName="usuario" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
-                <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Usuario</span>
-              </label>
-            </div>
+            @if (!usuario) {
+              <div>
+                <label for="usuario" class="relative">
+                  <input id="usuario" type="text" formControlName="usuario" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
+                  <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Usuario</span>
+                </label>
+              </div>
+              <div>
+                <label for="password" class="relative">
+                  <input id="password" type="password" formControlName="password" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
+                  <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Contraseña</span>
+                </label>
+              </div>
+              <div>
+                <label for="confirmPassword" class="relative">
+                  <input id="confirmPassword" type="password" formControlName="confirmPassword" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
+                  <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Confirmar contraseña</span>
+                </label>
+              </div>
+            }
           </div>
           <div class="flex justify-end gap-2">
             <button type="button" (click)="close.emit()" class="bg-neutral-100 hover:bg-neutral-200/75 px-4 py-2 rounded-full">Cancelar</button>
@@ -88,7 +104,9 @@ export class UsuarioModalComponent {
   @Input() usuario: Usuario | null = null;
   @Output() close = new EventEmitter<void>();
 
+  private rolesSubscription: Subscription | null = null;
   private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
   private usuariosService = inject(UsuariosService);
   private rolesService = inject(RolesService);
   roles: Rol[] = [];
@@ -101,6 +119,8 @@ export class UsuarioModalComponent {
     correo: ['', [Validators.required, Validators.email]],
     rol: ['', Validators.required],
     usuario: ['', Validators.required],
+    password: [''],
+    confirmPassword: [''],
   });
 
   // Icons
@@ -108,7 +128,13 @@ export class UsuarioModalComponent {
   Edit = faPenToSquare;
 
   ngOnInit() {
-    this.rolesService.getRoles().subscribe({
+    if (!this.usuario) {
+      this.form.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
+      this.form.get('confirmPassword')?.setValidators([Validators.required]);
+      this.form.setValidators(this.passwordsMatch);
+    }
+
+    this.rolesSubscription = this.rolesService.getRoles().subscribe({
       next: (data) => {
         this.roles = data;
         if (this.usuario) {
@@ -119,27 +145,56 @@ export class UsuarioModalComponent {
     });
   }
 
+  passwordsMatch(control: AbstractControl): ValidationErrors | null {
+    const password = control.get('password')?.value;
+    const confirmPassword = control.get('confirmPassword')?.value;
+    return password === confirmPassword ? null : { passwordsMismatch: true };
+  }
+
   async save() {
     if (this.form.invalid) return;
 
-    const value = this.form.value as Usuario;
-
     if (this.usuario?.id) {
       const oldRolId = this.roles.find((rol) => rol.nombre === this.usuario?.rol)?.id;
-
-      await this.usuariosService.updateUser(this.usuario.id, value);
-
-      if (oldRolId !== value.rol) {
-        await this.rolesService.changeRolUserCounter(oldRolId!, -1);
-        await this.rolesService.changeRolUserCounter(value.rol!, 1)
+      const updatedUsuario: Usuario = {
+        auth: this.usuario.auth,
+        dni: this.form.value.dni!,
+        nombres: this.form.value.nombres!,
+        apellidos: this.form.value.apellidos!,
+        telefono: this.form.value.telefono!,
+        correo: this.form.value.correo!,
+        rol: this.form.value.rol!,
+        usuario: this.form.value.usuario!,
       }
 
-      this.close.emit();
-    } else {
-      await this.usuariosService.addUser(value);
-      await this.rolesService.changeRolUserCounter(value.rol!, 1);
+      await this.usuariosService.updateUser(this.usuario.id, updatedUsuario);
 
-      this.close.emit();
+      if (oldRolId !== updatedUsuario.rol) {
+        await this.rolesService.changeRolUserCounter(oldRolId!, -1);
+        await this.rolesService.changeRolUserCounter(updatedUsuario.rol!, 1)
+      }
+    } else {
+      const userCredentials: any = await this.authService.registerUser(this.form.value.usuario + '@gsrchanka.com', this.form.value.password!);
+      const usuarioData: Usuario = {
+        auth: userCredentials.user.uid,
+        dni: this.form.value.dni!,
+        nombres: this.form.value.nombres!,
+        apellidos: this.form.value.apellidos!,
+        telefono: this.form.value.telefono!,
+        correo: this.form.value.correo!,
+        rol: this.form.value.rol!,
+        usuario: this.form.value.usuario!,
+      }
+
+      await this.usuariosService.addUser(usuarioData);
+      await this.rolesService.changeRolUserCounter(usuarioData.rol!, 1);
     }
+
+    this.close.emit();
+  }
+
+  ngOnDestroy() {
+    this.rolesSubscription?.unsubscribe();
+    this.form.reset();
   }
 }

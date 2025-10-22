@@ -1,5 +1,6 @@
 export interface Usuario {
   id?: string;
+  auth: string;
   dni: string;
   nombres: string;
   apellidos: string;
