@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPenToSquare, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { UsuariosService } from '../../../../services/usuarios.service';
 import { RolesService } from '../../../../services/roles.service';
 import { combineLatest } from 'rxjs';
@@ -81,8 +81,6 @@ export class UsuariosComponent {
 
   // Icons
   Add = faPlus;
-  Edit = faPenToSquare;
-  Delete = faTrash;
 
   constructor() {
     combineLatest([

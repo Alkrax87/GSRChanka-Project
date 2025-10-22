@@ -1,168 +1,108 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { AreaService } from '../../../services/area.service';
 import { TableComponent } from "../../../components/table/table.component";
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { AreaService, Area } from '../../../services/area.service';
-import { CommonModule } from '@angular/common';
+import { AreaModalComponent } from "../../../components/area-modal/area-modal.component";
+import { AreaShowModalComponent } from "../../../components/area-show-modal/area-show-modal.component";
+import { ConfirmacionEliminarModalComponent } from "../../../components/confirmacion-eliminar-modal/confirmacion-eliminar-modal.component";
+import { Area } from '../../../interfaces/area';
 
 @Component({
   selector: 'app-areas',
   standalone: true,
-  imports: [TableComponent, FormsModule, CommonModule, ReactiveFormsModule],
+  imports: [TableComponent, AreaModalComponent, FontAwesomeModule, ConfirmacionEliminarModalComponent, AreaShowModalComponent],
   template: `
-  <h2>Listado de areas</h2>
-  <button (click)="abrirModalAgregar()">➕ Agregar Área</button>
-    
-  <!-- Tu tabla reutilizable -->
-  <app-table 
-    [headers]="headers" 
-    [data]="areas"
-    (onShow)="verArea($event)"
-    (onEdit)="abrirModalEditar($event)"
-    (onDelete)="deleteArea($event)">
-  </app-table>
-    
-  <!-- Modal Agregar -->
-  <div *ngIf="modalAgregar" class="modal">
-    <div class="modal-content">
-      <h3>Agregar Nueva áreas</h3>
-      <form (ngSubmit)="addArea()">
-        <input [(ngModel)]="newArea.nombre" name="nombre" placeholder="Nombre" required />
-        <input [(ngModel)]="newArea.responsable" name="responsable" placeholder="Responsable" required />
-        <div style="margin-top:10px;">
-          <button type="submit">Guardar</button>
-          <button type="button" (click)="cerrarModalAgregar()">Cancelar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal: Editar -->
-    <div *ngIf="modalEditar" class="modal">
-      <div class="modal-content">
-        <h3>Editar Área</h3>
-        <form (ngSubmit)="actualizarArea()">
-          <input [(ngModel)]="editAreaData.nombre" name="nombre" placeholder="Nombre" required />
-          <input [(ngModel)]="editAreaData.responsable" name="responsable" placeholder="Responsable" required />
-          <button type="submit">Actualizar</button>
-          <button type="button" (click)="cerrarModalEditar()">Cancelar</button>
-        </form>
+    <div class="flex flex-col gap-5 p-2 sm:p-10 select-none">
+      <p class="text-neutral-400 text-xs font-semibold">
+        <span class="text-main">Area</span>
+      </p>
+      <div class="flex items-center -mt-5 justify-between">
+        <h1 class="text-main text-4xl font-bold">ÁREA</h1>
+        <button (click)="openCreate()" class="bg-main hover:bg-main-hover px-4 py-2 text-white rounded-full">
+          <fa-icon [icon]="Add"></fa-icon>&nbsp; Agregar Área
+        </button>
       </div>
+      <app-table [tableConstructor]="headers"
+        [data]="areas()"
+        (onEdit)="openEdit($event)"
+        (onDelete)="openDelete($event)"
+        (onShow)="openShow($event)"
+      ></app-table>
     </div>
 
-  <!-- Modal show(ver) -->
-  <div *ngIf="selectedArea" class="modal">
-    <div class="modal-content">
-      <h3>Detalles del Área</h3>
-      <p><strong>ID:</strong> {{ selectedArea.id }}</p>
-      <p><strong>Nombre:</strong> {{ selectedArea.nombre }}</p>
-      <p><strong>Responsable:</strong> {{ selectedArea.responsable }}</p>
-      <button (click)="cerrarModal()">Cerrar</button>
-    </div>
-  </div>
+   @if (isAreaModalOpen()) {
+      <app-area-modal
+        [area]="selectedArea()"
+        (close)="isAreaModalOpen.set(false)"
+      ></app-area-modal>
+    }
+    @if (isAreaShowOpen()) {
+      <app-area-show-modal
+        [area]="selectedArea()!"
+        (close)="isAreaShowOpen.set(false)"
+      ></app-area-show-modal>
+    }
+     @if (isConfirmOpen()) {
+      <app-confirmacion-eliminar-modal
+        [message]="'¿Eliminar el área ' + selectedArea()!.nombrearea + '?'"
+        (confirm)="confirmDelete()"
+        (cancel)="isConfirmOpen.set(false)"
+      ></app-confirmacion-eliminar-modal>
+    }
+
   `,
-  styles: [`
-    .modal {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-content {
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      width: 300px;
-    }
-  `]
+  styles: ``,
 })
-export class AreasComponent implements OnInit {
-  headers = ['id', 'nombre', 'responsable']; //  columnas que mostrará tu tabla
-  areas: Area[] = [];
+export class AreasComponent {
+  private areasService = inject(AreaService);
 
-  // Formularios
-  newArea: Area = { nombre: '', responsable: '' };
-  editAreaData: Area = { id: '', nombre: '', responsable: '' };
+  headers = [
+    { key: 'nombrearea', label: 'Área Institucional' },
+    { key: 'responsable', label: 'Encargado' },
+    { key: 'miembros_area', label: 'Miembros Area' }
+  ];
 
-  // Estado de modales
-  selectedArea: Area | null = null; // área seleccionada para "ver"
-  modalAgregar = false; // 🔹 control para abrir/cerrar modal agregar
-  modalEditar = false;
-  
-  constructor(private areaService: AreaService) {}
+  // Signals
+  areas = signal<Area[]>([]);
+  isAreaModalOpen = signal(false);
+  isAreaShowOpen = signal(false);
+  isConfirmOpen = signal(false);
+  selectedArea = signal<Area | null>(null);
+
+  // Icons
+  Add = faPlus;
 
   ngOnInit() {
-  this.areaService.getAreas().subscribe(data => {
-    console.log('Datos que llegan de Firestore:', data);
-    this.areas = data;
-  });
-}
-
-  // -------- MODAL AGREGAR --------
-  abrirModalAgregar() {
-    this.modalAgregar = true;
+    this.areasService.getAreas().subscribe({
+      next: (data) => this.areas.set(data),
+    });
   }
 
-  cerrarModalAgregar() {
-    this.modalAgregar = false;
-    this.newArea = { id: '', nombre: '', responsable: '' };
+  openCreate() {
+    this.selectedArea.set(null);
+    this.isAreaModalOpen.set(true);
   }
 
-  addArea() {
-  if (this.newArea.nombre && this.newArea.responsable) {
-    const areaTmp = { ...this.newArea };
-    this.newArea = { nombre: '', responsable: '' };
-    this.modalAgregar = false; // cerrar primero
+  openShow(area: Area) {
+    this.selectedArea.set(area);
+    this.isAreaShowOpen.set(true);
+  }
 
-    this.areaService.addArea(areaTmp).catch(err => {
-      console.error("Error al guardar área:", err);
-      // 🔹 opcional: volver a abrir el modal si falla
-      this.modalAgregar = true;
-      });
+  openEdit(area: Area) {
+    this.selectedArea.set(area);
+    this.isAreaModalOpen.set(true);
+  }
+
+  openDelete(area: Area) {
+    this.selectedArea.set(area);
+    this.isConfirmOpen.set(true);
+  }
+
+  confirmDelete() {
+    if (this.selectedArea()?.id) {
+      this.areasService.deleteArea(this.selectedArea()!.id!);
     }
+    this.isConfirmOpen.set(false);
   }
-
-  deleteArea(area: Area) {
-    if (area.id) this.areaService.deleteArea(area.id);
-  }
-
-  // -------- MODAL EDITAR --------
-  abrirModalEditar(area: Area) {
-    this.editAreaData = { ...area }; // copiar datos del área
-    this.modalEditar = true;
-  }
-  cerrarModalEditar() {
-    this.modalEditar = false;
-    
-  }
-  actualizarArea() {
-    if (this.editAreaData.id) {
-      const tmp = { ...this.editAreaData }; // copia rápida
-      this.cerrarModalEditar(); // Scerrar inmediatamente el modal
-
-      this.areaService.updateArea(tmp.id!, {
-        nombre: tmp.nombre,
-        responsable: tmp.responsable
-      }).catch(err => {
-        console.error("Error al actualizar área:", err);
-        //opcional: volver a abrir el modal si falla
-        this.editAreaData = tmp;
-        this.modalEditar = true;
-      });
-    }
-  }
-  //MODAL SHOW(VER)
-  verArea(area: Area) {
-    if (area.id) {
-      this.areaService.getAreaById(area.id).subscribe(data => {
-        this.selectedArea = data;
-      });
-    }
-  }
-
-  cerrarModal() {
-    this.selectedArea = null;
-  }
-
 }

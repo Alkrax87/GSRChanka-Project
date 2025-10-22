@@ -1,10 +1,10 @@
-import { Component, EventEmitter, Inject, inject, Input, Output } from '@angular/core';
-import { Usuario } from '../../interfaces/usuario';
+import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faPenToSquare, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UsuariosService } from '../../services/usuarios.service';
 import { RolesService } from '../../services/roles.service';
-import { faPenToSquare, faPlus } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { Usuario } from '../../interfaces/usuario';
 import { Rol } from '../../interfaces/rol';
 
 @Component({
