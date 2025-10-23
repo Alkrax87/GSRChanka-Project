@@ -7,6 +7,10 @@ import { AreaModalComponent } from "../../../components/area-modal/area-modal.co
 import { AreaShowModalComponent } from "../../../components/area-show-modal/area-show-modal.component";
 import { ConfirmacionEliminarModalComponent } from "../../../components/confirmacion-eliminar-modal/confirmacion-eliminar-modal.component";
 import { Area } from '../../../interfaces/area';
+import { UsuariosService } from '../../../services/usuarios.service';
+import { combineLatest } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Usuario } from '../../../interfaces/usuario';
 
 @Component({
   selector: 'app-areas',
@@ -56,15 +60,17 @@ import { Area } from '../../../interfaces/area';
 })
 export class AreasComponent {
   private areasService = inject(AreaService);
+  private usuariosService = inject(UsuariosService);
 
   headers = [
     { key: 'nombrearea', label: 'Área Institucional' },
-    { key: 'responsable', label: 'Encargado' },
+    { key: 'responsableNombre', label: 'Encargado' },
     { key: 'miembros_area', label: 'Miembros Area' }
   ];
 
   // Signals
   areas = signal<Area[]>([]);
+  usuarios = signal<Usuario[]>([]);
   isAreaModalOpen = signal(false);
   isAreaShowOpen = signal(false);
   isConfirmOpen = signal(false);
@@ -73,12 +79,27 @@ export class AreasComponent {
   // Icons
   Add = faPlus;
 
-  ngOnInit() {
-    this.areasService.getAreas().subscribe({
-      next: (data) => this.areas.set(data),
+  constructor() {
+    combineLatest([
+      this.areasService.getAreas(),
+      this.usuariosService.getUsers(),
+    ]).pipe(takeUntilDestroyed()).subscribe({
+      next: ([areas, usuarios]) => {
+        this.areas.set(
+          areas.map((area) => {
+            const usuario = usuarios.find((usuario) => usuario.id === area.responsable);
+            return {
+              ...area,
+             responsableNombre: usuario
+              ? `${usuario.nombres} ${usuario.apellidos}`
+              : 'Sin responsable',
+            };
+          })
+        );
+        this.usuarios.set(usuarios);
+      },
     });
   }
-
   openCreate() {
     this.selectedArea.set(null);
     this.isAreaModalOpen.set(true);
