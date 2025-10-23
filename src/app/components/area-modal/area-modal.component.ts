@@ -30,7 +30,7 @@ import { Usuario } from '../../interfaces/usuario';
                   <div class="rounded-lg overflow-hidden">
                     <option value="" disabled selected hidden></option>
                     @for (responsable of usuarios; track $index) {
-                      <option [value]="responsable.nombres + ' ' + responsable.apellidos" class="hover:bg-main hover:text-red-700 h-20"> {{ responsable.nombres }} {{ responsable.apellidos }}</option>
+                      <option [value]="responsable.id" class="hover:bg-main hover:text-red-700 h-20"> {{ responsable.nombres }} {{ responsable.apellidos }}</option>
                     }
                   </div>
                 </select>
@@ -81,26 +81,32 @@ export class AreaModalComponent {
   Add = faPlus;
   Edit = faPenToSquare;
 
-  ngOnInit() {
-    if (this.area) {
-      this.form.patchValue(this.area);
-    }
+    ngOnInit() {
     this.usuariosService.getUsers().subscribe({
       next: (data) => {
         this.usuarios = data;
+        if (this.area) {
+          const usuarioId = this.usuarios.find(u => u.nombres === this.area!.responsable)?.id;
+          this.form.patchValue({ ...this.area, responsable: usuarioId });
+        }
       }
     });
   }
 
-  save() {
+  async save() {
     if (this.form.invalid) return;
 
     const value = this.form.value as Area;
 
     if (this.area?.id) {
-      this.areasService.updateArea(this.area.id, value).then(() => this.close.emit());
+      // Si es edición
+      await this.areasService.updateArea(this.area.id, value);
     } else {
-      this.areasService.addArea(value).then(() => this.close.emit());
+      // Si es creación
+      await this.areasService.addArea(value);
     }
+
+    // Cerrar modal después de guardar
+    this.close.emit();
   }
 }
