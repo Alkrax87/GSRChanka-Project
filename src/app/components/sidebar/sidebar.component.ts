@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faAngleDown, faAngleRight, faArrowRightFromBracket, faBuilding, faHome, faMagnifyingGlass, faUserShield } from '@fortawesome/free-solid-svg-icons';
+import { faAngleDown, faAngleRight, faArrowRightFromBracket, faBuilding, faClipboardList, faHome, faMagnifyingGlass, faUserShield } from '@fortawesome/free-solid-svg-icons';
 import { LogOutComponent } from "../log-out/log-out.component";
 
 @Component({
@@ -150,13 +150,23 @@ export class SidebarComponent {
 
   sections = [
     {
-      sectionName: 'Admin',
+      sectionName: 'General',
       routes: [
         {
           name: 'Inicio',
           icon: faHome,
           route: './home',
         },
+        {
+          name: 'Seguimiento',
+          icon: faMagnifyingGlass,
+          route: './seguimiento'
+        },
+      ]
+    },
+    {
+      sectionName: 'Admin',
+      routes: [
         {
           multiRoutes: true,
           name: 'Seguridad',
@@ -173,13 +183,18 @@ export class SidebarComponent {
           icon: faBuilding,
           route: './areas'
         },
-        {
-          name: 'Seguimiento',
-          icon: faMagnifyingGlass,
-          route: './seguimiento'
-        },
       ]
     },
+    {
+      sectionName: 'Área',
+      routes: [
+        {
+          name: 'Trámites',
+          icon: faClipboardList,
+          route: './tramites'
+        }
+      ]
+    }
   ];
 
   resetSubRoutesStatus() {

@@ -5,18 +5,17 @@ import { HomeComponent } from './pages/portal/home/home.component';
 import { SeguridadComponent } from './pages/portal/seguridad/seguridad.component';
 import { LandingComponent } from './pages/public/landing/landing.component';
 import { LoginComponent } from './pages/public/login/login.component';
-import { TramitesComponent } from './pages/public/tramites/tramites.component';
 import { SeguimientoComponent } from './pages/public/seguimiento/seguimiento.component';
 import { UsuariosComponent } from './pages/portal/seguridad/usuarios/usuarios.component';
 import { RolesComponent } from './pages/portal/seguridad/roles/roles.component';
 import { AreasComponent } from './pages/portal/areas/areas.component';
+import { TramitesComponent } from './pages/portal/tramites/tramites.component';
 
 const redirectLoggedIn = () => redirectLoggedInTo(['portal/home']);
 const redirectUnauthorizedUser = () => redirectUnauthorizedTo(['login']);
 
 export const routes: Routes = [
   { path: '', component: LandingComponent },
-  { path: 'tramite', component: TramitesComponent },
   { path: 'seguimiento', component: SeguimientoComponent },
   {
     path: 'login',
@@ -32,6 +31,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'home', pathMatch: 'full' },
       { path: 'home', component: HomeComponent },
+      { path: 'seguimiento', component: HomeComponent },
       {
         path: 'seguridad',
         component: SeguridadComponent,
@@ -41,7 +41,7 @@ export const routes: Routes = [
         ]
       },
       { path: 'areas', component:  AreasComponent},
-      { path: 'seguimiento', component: HomeComponent },
+      { path: 'tramites', component: TramitesComponent },
     ],
   },
   { path: '**', redirectTo: '' },
