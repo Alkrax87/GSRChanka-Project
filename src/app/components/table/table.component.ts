@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faEdit, faEye, faSearch, faTrash} from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faSearch, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-table',
@@ -63,15 +63,11 @@ import { faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faEdit, faEy
               }
               <td>
                 <div class="flex items-center justify-center gap-4">
-                  <button (click)="onShow.emit(row)" class="text-main" title="Ver">
-                    <fa-icon [icon]="Show"></fa-icon>
-                  </button>
-                  <button (click)="onEdit.emit(row)" class="text-yellow-400" title="Editar">
-                    <fa-icon [icon]="Edit"></fa-icon>
-                  </button>
-                  <button (click)="onDelete.emit(row)"  class="text-red-600"title="Eliminar">
-                    <fa-icon [icon]="Delete"></fa-icon>
-                  </button>
+                  @for (btn of actions; track $index) {
+                    <button (click)="action.emit({ action: btn.action, item: row })" [class]="btn.color" [title]="btn.title">
+                      <fa-icon [icon]="btn.icon"></fa-icon>
+                    </button>
+                  }
                 </div>
               </td>
             </tr>
@@ -112,9 +108,8 @@ import { faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faEdit, faEy
 export class TableComponent {
   @Input() tableConstructor: { key: string, label: string}[] = [];
   @Input() data: any[] = [];
-  @Output() onShow = new EventEmitter<any>();
-  @Output() onEdit = new EventEmitter<any>();
-  @Output() onDelete = new EventEmitter<any>();
+  @Input() actions: { action: string; icon: IconDefinition; color: string; title: string }[] = [];
+  @Output() action = new EventEmitter<{ action: string; item: any }>();
 
   searchTerm: string = '';
   sortColumn: string = '';
@@ -125,9 +120,6 @@ export class TableComponent {
   Previous = faChevronLeft;
   Next = faChevronRight;
   Search = faSearch;
-  Show = faEye;
-  Edit = faEdit;
-  Delete = faTrash;
 
   currentPage = 1;
   pageSize = 10;
