@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faAngleDown, faAngleRight, faArrowRightFromBracket, faBuilding, faClipboardList, faHome, faMagnifyingGlass, faUserShield } from '@fortawesome/free-solid-svg-icons';
 import { LogOutComponent } from "../log-out/log-out.component";
+import { UsuariosService } from '../../services/usuarios.service';
+import { Usuario } from '../../interfaces/usuario';
 
 @Component({
   selector: 'app-sidebar',
@@ -112,9 +114,13 @@ import { LogOutComponent } from "../log-out/log-out.component";
               (click)="!isOpen && (isLogOutModalOpen = true)"
             >
             @if (isOpen) {
-              <div class="flex flex-col w-full truncate">
-                <p class="font-semibold text-sm -mb-1 truncate">{{ user.name + ' ' + user.lastname }}</p>
-                <p class="text-xs">{{ user.username }}</p>
+              <div class="w-full truncate">
+                @if (user) {
+                  <div class="animate-fade-right delay-75">
+                    <p class="font-semibold text-sm -mb-1 truncate">{{ user.nombres + ' ' + user.apellidos }}</p>
+                    <p class="text-xs">{{ user.usuario }}</p>
+                  </div>
+                }
               </div>
               <div class="flex items-center justify-center">
                 <button (click)="isLogOutModalOpen = true" [ngClass]="{'bg-white text-neutral-800': isLogOutModalOpen}" class="hover:bg-white hover hover:text-neutral-800 duration-300 rounded-lg w-8 h-8">
@@ -130,22 +136,41 @@ import { LogOutComponent } from "../log-out/log-out.component";
       <app-log-out (cancel)="isLogOutModalOpen = false"></app-log-out>
     }
   `,
-  styles: ``,
+  styles: `
+    @keyframes fadeRight {
+      0% {
+        opacity: 0;
+        transform: translateX(-40px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    .animate-fade-right {
+      animation: fadeRight 1s ease-out forwards;
+    }
+  `,
 })
 export class SidebarComponent {
   @Output() sidebarStatus = new EventEmitter<boolean>();
-  isLogOutModalOpen = false;
 
+  private usuariosService = inject(UsuariosService);
+
+  user: Usuario | null = null;
+  isLogOutModalOpen = false;
   isOpen: boolean = true;
 
+  // Icons
   ArrowDown = faAngleDown;
   ArrowClose = faAngleRight;
   LogOut = faArrowRightFromBracket;
 
-  user: { name: string, lastname: string, username: string } = {
-    name: 'Paco',
-    lastname: 'Bazán',
-    username: 'pbazan',
+  ngOnInit() {
+    this.usuariosService.getUserLoggedData();
+    this.usuariosService.dataUsuario$.subscribe({
+      next: (data) => (this.user = data)
+    });
   }
 
   sections = [
