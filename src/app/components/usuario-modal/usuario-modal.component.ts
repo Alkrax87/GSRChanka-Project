@@ -157,7 +157,6 @@ export class UsuarioModalComponent {
     if (this.usuario?.id) {
       const oldRolId = this.roles.find((rol) => rol.nombre === this.usuario?.rol)?.id;
       const updatedUsuario: Usuario = {
-        auth: this.usuario.auth,
         dni: this.form.value.dni!,
         nombres: this.form.value.nombres!,
         apellidos: this.form.value.apellidos!,
@@ -176,7 +175,7 @@ export class UsuarioModalComponent {
     } else {
       const userCredentials: any = await this.authService.registerUser(this.form.value.usuario + '@gsrchanka.com', this.form.value.password!);
       const usuarioData: Usuario = {
-        auth: userCredentials.user.uid,
+        id: userCredentials.user.uid,
         dni: this.form.value.dni!,
         nombres: this.form.value.nombres!,
         apellidos: this.form.value.apellidos!,
