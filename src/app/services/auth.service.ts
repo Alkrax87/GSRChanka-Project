@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Auth, browserSessionPersistence, createUserWithEmailAndPassword, setPersistence, signInWithEmailAndPassword, signOut } from "@angular/fire/auth";
+import { Auth, browserSessionPersistence, createUserWithEmailAndPassword, setPersistence, signInWithEmailAndPassword, signOut } from '@angular/fire/auth';
 import { Router } from '@angular/router';
 
 @Injectable({
@@ -7,6 +7,10 @@ import { Router } from '@angular/router';
 })
 export class AuthService {
   constructor(private auth: Auth, private router: Router) {}
+
+  getUserUid(): string | undefined {
+    return this.auth.currentUser?.uid;
+  }
 
   registerUser(email: string, password: string) {
     return createUserWithEmailAndPassword(this.auth, email, password);
