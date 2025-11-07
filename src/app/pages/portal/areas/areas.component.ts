@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faEye, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { AreaService } from '../../../services/area.service';
 import { TableComponent } from "../../../components/table/table.component";
 import { AreaModalComponent } from "../../../components/area-modal/area-modal.component";
@@ -27,11 +27,11 @@ import { Usuario } from '../../../interfaces/usuario';
           <fa-icon [icon]="Add"></fa-icon>&nbsp; Agregar Área
         </button>
       </div>
-      <app-table [tableConstructor]="headers"
+      <app-table
+        [tableConstructor]="tableHeaders"
         [data]="areas()"
-        (onEdit)="openEdit($event)"
-        (onDelete)="openDelete($event)"
-        (onShow)="openShow($event)"
+        [actions]="tableActions"
+        (action)="handleAction($event)"
       ></app-table>
     </div>
 
@@ -62,11 +62,16 @@ export class AreasComponent {
   private areasService = inject(AreaService);
   private usuariosService = inject(UsuariosService);
 
-  headers = [
+  tableHeaders = [
     { key: 'nombrearea', label: 'Área Institucional' },
     { key: 'responsableNombre', label: 'Encargado' },
     { key: 'miembros_area', label: 'Miembros Area' }
   ];
+  tableActions = [
+    { action: 'show', icon: faEye, color: 'text-main', title: 'Ver'},
+    { action: 'edit', icon: faEdit, color: 'text-yellow-400', title: 'Editar'},
+    { action: 'delete', icon: faTrash, color: 'text-red-600', title: 'Eliminar'},
+  ]
 
   // Signals
   areas = signal<Area[]>([]);
@@ -100,6 +105,21 @@ export class AreasComponent {
       },
     });
   }
+
+  handleAction({action, item}: { action: string; item: any }) {
+    switch (action) {
+      case 'show':
+        this.openShow(item);
+        break;
+      case 'edit':
+        this.openEdit(item);
+        break;
+      case 'delete':
+        this.openDelete(item);
+        break;
+    }
+  }
+
   openCreate() {
     this.selectedArea.set(null);
     this.isAreaModalOpen.set(true);
