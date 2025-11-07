@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faEye, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { UsuariosService } from '../../../../services/usuarios.service';
 import { RolesService } from '../../../../services/roles.service';
 import { combineLatest } from 'rxjs';
@@ -29,9 +29,8 @@ import { Rol } from '../../../../interfaces/rol';
       <app-table
         [tableConstructor]="tableHeaders"
         [data]="usuarios()"
-        (onShow)="openShow($event)"
-        (onEdit)="openEdit($event)"
-        (onDelete)="openDelete($event)"
+        [actions]="tableActions"
+        (action)="handleAction($event)"
       ></app-table>
     </div>
 
@@ -70,6 +69,11 @@ export class UsuariosComponent {
     { key: 'rol', label: 'Rol' },
     { key: 'usuario', label: 'Usuario' },
   ];
+  tableActions = [
+    { action: 'show', icon: faEye, color: 'text-main', title: 'Ver'},
+    { action: 'edit', icon: faEdit, color: 'text-yellow-400', title: 'Editar'},
+    { action: 'delete', icon: faTrash, color: 'text-red-600', title: 'Eliminar'},
+  ]
 
   // Signals
   usuarios = signal<Usuario[]>([]);
@@ -101,6 +105,20 @@ export class UsuariosComponent {
         this.roles.set(roles);
       },
     });
+  }
+
+  handleAction({action, item}: { action: string; item: any }) {
+    switch (action) {
+      case 'show':
+        this.openShow(item);
+        break;
+      case 'edit':
+        this.openEdit(item);
+        break;
+      case 'delete':
+        this.openDelete(item);
+        break;
+    }
   }
 
   openCreate() {
