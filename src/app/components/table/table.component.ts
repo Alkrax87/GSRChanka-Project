@@ -59,7 +59,7 @@ import { faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faSearch, Ic
           @for (row of paginatedData; track $index) {
             <tr class="h-10 hover:bg-neutral-100">
               @for (header of tableConstructor; track $index) {
-                <td class="px-3">{{ row[header.key] }}</td>
+                <td class="px-3">{{ getNestedValue(row, header.key) || '-' }}</td>
               }
               <td>
                 <div class="flex items-center justify-center gap-4">
@@ -140,6 +140,10 @@ export class TableComponent {
     }
   }
 
+  getNestedValue(obj: any, key: string): any {
+    return key.split('.').reduce((acc, part) => acc && acc[part], obj);
+  }
+
   onSearch(event: Event) {
     const target = event.target as HTMLInputElement;
     this.searchTerm = target.value;
@@ -157,7 +161,7 @@ export class TableComponent {
     // Filtrado por búsqueda
     this.filteredData = this.data.filter(row =>
       this.tableConstructor.some(col =>
-        row[col.key]?.toString().toLowerCase().includes(this.searchTerm.toLowerCase())
+        this.getNestedValue(row, col.key)?.toString().toLowerCase().includes(this.searchTerm.toLowerCase())
       )
     );
 
@@ -181,8 +185,8 @@ export class TableComponent {
     }
 
     this.filteredData.sort((a, b) => {
-      const valA = a[header]?.toString().toLowerCase() ?? '';
-      const valB = b[header]?.toString().toLowerCase() ?? '';
+      const valA = this.getNestedValue(a, header)?.toString().toLowerCase() ?? '';
+      const valB = this.getNestedValue(b, header)?.toString().toLowerCase() ?? '';
 
       if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
       if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
