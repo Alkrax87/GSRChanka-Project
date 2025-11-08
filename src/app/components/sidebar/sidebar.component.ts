@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faAngleDown, faAngleRight, faArrowRightFromBracket, faBuilding, faClipboardList, faHome, faMagnifyingGlass, faUserShield } from '@fortawesome/free-solid-svg-icons';
+import { faAngleDown, faAngleRight, faArrowRightFromBracket, faBuilding, faClipboardList, faHome, faMagnifyingGlass, faUserShield, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { LogOutComponent } from "../log-out/log-out.component";
 import { UsuariosService } from '../../services/usuarios.service';
 import { Usuario } from '../../interfaces/usuario';
@@ -173,7 +173,20 @@ export class SidebarComponent {
     });
   }
 
-  sections = [
+  sections: {
+    sectionName: string;
+    routes: {
+      multiRoutes?: boolean;
+      name: string;
+      icon: IconDefinition;
+      route: string;
+      subroutes?: {
+          name: string;
+          route: string;
+      }[];
+      subRoutesStatus?: boolean;
+    }[];
+  }[] = [
     {
       sectionName: 'General',
       routes: [
@@ -211,7 +224,7 @@ export class SidebarComponent {
       ]
     },
     {
-      sectionName: 'Área',
+      sectionName: 'Trámites',
       routes: [
         {
           name: 'Trámites',
