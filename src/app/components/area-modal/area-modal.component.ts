@@ -6,7 +6,10 @@ import { AreaService } from '../../services/area.service';
 import { UsuariosService } from '../../services/usuarios.service';
 import { Area } from '../../interfaces/area';
 import { Usuario } from '../../interfaces/usuario';
-import { Subscription } from 'rxjs';
+import { RolesService } from '../../services/roles.service';
+import { Rol } from '../../interfaces/rol';
+import { combineLatest } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-area-modal',
@@ -38,6 +41,19 @@ import { Subscription } from 'rxjs';
                 <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Responsable</span>
               </label>
             </div>
+            <div>
+              <label for="rolAsociado" class="relative">
+                <select id="rolAsociado" formControlName="rolAsociado" placeholder="" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-pointer px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
+                  <div class="rounded-lg overflow-hidden">
+                    <option value="" disabled selected hidden></option>
+                    @for (rol of roles; track $index) {
+                      <option [value]="rol.id" class="hover:bg-main hover:text-red-700 h-20">{{ rol.nombre }}</option>
+                    }
+                  </div>
+                </select>
+                <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Rol Asociado</span>
+              </label>
+            </div>
           </div>
           <div class="flex justify-end gap-2">
             <button type="button" (click)="close.emit()" class="bg-neutral-100 hover:bg-neutral-200/75 px-4 py-2 rounded-full">Cancelar</button>
@@ -61,29 +77,37 @@ export class AreaModalComponent {
   @Input() area: Area | null = null;
   @Output() close = new EventEmitter<void>();
 
-  private usuariosSubscription: Subscription | null = null;
   private fb = inject(FormBuilder);
   private areasService = inject(AreaService);
   private usuariosService = inject(UsuariosService);
+  private rolesService = inject(RolesService);
   usuarios: Usuario[] = [];
+  roles: Rol[] = [];
 
   form = this.fb.group({
     nombre: ['', Validators.required],
     responsable: ['', Validators.required],
-    miembros: this.fb.control<Area['miembros']>([]),
+    rolAsociado: ['', Validators.required],
   });
 
   // Icons
   Add = faPlus;
   Edit = faPenToSquare;
 
-  ngOnInit() {
-    this.usuariosSubscription = this.usuariosService.getUsers().subscribe({
-      next: (data) => {
-        this.usuarios = data;
+  constructor() {
+    combineLatest([
+      this.usuariosService.getUsers(),
+      this.rolesService.getRoles(),
+    ]).pipe(takeUntilDestroyed()).subscribe({
+      next: ([usuarios, roles]) => {
+        this.usuarios = usuarios;
+        this.roles = roles;
+
         if (this.area) {
           const usuarioId = this.usuarios.find(u => u.nombres + ' ' + u.apellidos === this.area?.responsable)?.id;
-          this.form.patchValue({ ...this.area, responsable: usuarioId });
+          const rolId = this.roles.find(r => r.nombre === this.area?.rolAsociado)?.id;
+
+          this.form.patchValue({...this.area, responsable: usuarioId, rolAsociado: rolId});
         }
       }
     });
@@ -99,9 +123,5 @@ export class AreaModalComponent {
     } else {
       this.areasService.addArea(value).then(() => this.close.emit());
     }
-  }
-
-  ngOnDestroy() {
-    this.usuariosSubscription?.unsubscribe();
   }
 }
