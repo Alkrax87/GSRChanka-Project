@@ -6,6 +6,10 @@ import { AreaService } from '../../services/area.service';
 import { UsuariosService } from '../../services/usuarios.service';
 import { Area } from '../../interfaces/area';
 import { Usuario } from '../../interfaces/usuario';
+import { RolesService } from '../../services/roles.service';
+import { Rol } from '../../interfaces/rol';
+import { combineLatest } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-area-modal',
@@ -19,9 +23,9 @@ import { Usuario } from '../../interfaces/usuario';
         <form [formGroup]="form" (ngSubmit)="save()">
           <div class="flex flex-col gap-4 my-4">
             <div>
-              <label for="nombrearea" class="relative">
-                <input id="nombrearea" type="text" formControlName="nombrearea" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none"/>
-                <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Nombre Area</span>
+              <label for="nombre" class="relative">
+                <input id="nombre" type="text" formControlName="nombre" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none"/>
+                <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Nombre</span>
               </label>
             </div>
             <div>
@@ -29,8 +33,8 @@ import { Usuario } from '../../interfaces/usuario';
                 <select id="responsable" formControlName="responsable" placeholder="" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-pointer px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
                   <div class="rounded-lg overflow-hidden">
                     <option value="" disabled selected hidden></option>
-                    @for (responsable of usuarios; track $index) {
-                      <option [value]="responsable.id" class="hover:bg-main hover:text-red-700 h-20"> {{ responsable.nombres }} {{ responsable.apellidos }}</option>
+                    @for (usuario of usuarios; track $index) {
+                      <option [value]="usuario.id" class="hover:bg-main hover:text-red-700 h-20">{{ usuario.nombres }} {{ usuario.apellidos }}</option>
                     }
                   </div>
                 </select>
@@ -38,9 +42,16 @@ import { Usuario } from '../../interfaces/usuario';
               </label>
             </div>
             <div>
-              <label for="miembros_area" class="relative">
-                <input id="miembros_area" type="text" formControlName="miembros_area" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none"/>
-                <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Miembros Area</span>
+              <label for="rolAsociado" class="relative">
+                <select id="rolAsociado" formControlName="rolAsociado" placeholder="" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-pointer px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
+                  <div class="rounded-lg overflow-hidden">
+                    <option value="" disabled selected hidden></option>
+                    @for (rol of roles; track $index) {
+                      <option [value]="rol.id" class="hover:bg-main hover:text-red-700 h-20">{{ rol.nombre }}</option>
+                    }
+                  </div>
+                </select>
+                <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Rol Asociado</span>
               </label>
             </div>
           </div>
@@ -69,44 +80,48 @@ export class AreaModalComponent {
   private fb = inject(FormBuilder);
   private areasService = inject(AreaService);
   private usuariosService = inject(UsuariosService);
+  private rolesService = inject(RolesService);
   usuarios: Usuario[] = [];
+  roles: Rol[] = [];
 
   form = this.fb.group({
-    nombrearea: ['', Validators.required],
+    nombre: ['', Validators.required],
     responsable: ['', Validators.required],
-    miembros_area: ['', Validators.required],
+    rolAsociado: ['', Validators.required],
   });
 
   // Icons
   Add = faPlus;
   Edit = faPenToSquare;
 
-    ngOnInit() {
-    this.usuariosService.getUsers().subscribe({
-      next: (data) => {
-        this.usuarios = data;
+  constructor() {
+    combineLatest([
+      this.usuariosService.getUsers(),
+      this.rolesService.getRoles(),
+    ]).pipe(takeUntilDestroyed()).subscribe({
+      next: ([usuarios, roles]) => {
+        this.usuarios = usuarios;
+        this.roles = roles;
+
         if (this.area) {
-          const usuarioId = this.usuarios.find(u => u.nombres === this.area!.responsable)?.id;
-          this.form.patchValue({ ...this.area, responsable: usuarioId });
+          const usuarioId = this.usuarios.find(u => u.nombres + ' ' + u.apellidos === this.area?.responsable)?.id;
+          const rolId = this.roles.find(r => r.nombre === this.area?.rolAsociado)?.id;
+
+          this.form.patchValue({...this.area, responsable: usuarioId, rolAsociado: rolId});
         }
       }
     });
   }
 
-  async save() {
+  save() {
     if (this.form.invalid) return;
 
     const value = this.form.value as Area;
 
     if (this.area?.id) {
-      // Si es edición
-      await this.areasService.updateArea(this.area.id, value);
+      this.areasService.updateArea(this.area.id, value).then(() => this.close.emit());
     } else {
-      // Si es creación
-      await this.areasService.addArea(value);
+      this.areasService.addArea(value).then(() => this.close.emit());
     }
-
-    // Cerrar modal después de guardar
-    this.close.emit();
   }
 }

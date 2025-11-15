@@ -1,6 +1,6 @@
 export interface Area {
   id?: string;
-  nombrearea: string;
+  nombre: string;
   responsable: string;
-  miembros_area: string;
+  rolAsociado: string;
 }
