@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faSearch, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faGear, faHourglassHalf, faSearch, faXmark, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-table',
@@ -59,7 +59,34 @@ import { faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faSearch, Ic
           @for (row of paginatedData; track $index) {
             <tr class="h-10 hover:bg-neutral-100">
               @for (header of tableConstructor; track $index) {
-                <td class="px-3">{{ getNestedValue(row, header.key) || '-' }}</td>
+                <td class="px-3">
+                  @if (header.status) {
+                    @switch (getNestedValue(row, header.key)) {
+                      @case ('Pendiente') {
+                        <span class="bg-[#FFC108] text-white font-semibold text-sm rounded-full px-3 pb-0.5">
+                          <fa-icon [icon]="Hourglass"></fa-icon>&nbsp; {{ getNestedValue(row, header.key) }}
+                        </span>
+                      }
+                      @case ('En Proceso') {
+                        <span class="bg-[#17A2B9] text-white font-semibold text-sm rounded-full px-3 pb-0.5">
+                          <fa-icon [icon]="Gear"></fa-icon>&nbsp; {{ getNestedValue(row, header.key) }}
+                        </span>
+                      }
+                      @case ('Completado') {
+                        <span class="bg-[#28A745] text-white font-semibold text-sm rounded-full px-3 pb-0.5">
+                          <fa-icon [icon]="Check"></fa-icon>&nbsp; {{ getNestedValue(row, header.key) }}
+                        </span>
+                      }
+                      @case ('Cancelado') {
+                        <span class="bg-[#DC3646] text-white font-semibold text-sm rounded-full px-3 pb-0.5">
+                          <fa-icon [icon]="Xmark"></fa-icon>&nbsp; {{ getNestedValue(row, header.key) }}
+                        </span>
+                      }
+                    }
+                  } @else {
+                    {{ getNestedValue(row, header.key) || '-' }}
+                  }
+                </td>
               }
               <td>
                 <div class="flex items-center justify-center gap-4">
@@ -106,7 +133,7 @@ import { faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faSearch, Ic
   styles: ``,
 })
 export class TableComponent {
-  @Input() tableConstructor: { key: string, label: string}[] = [];
+  @Input() tableConstructor: { key: string, label: string, status?: boolean }[] = [];
   @Input() data: any[] = [];
   @Input() actions: { action: string; icon: IconDefinition; color: string; title: string }[] = [];
   @Output() action = new EventEmitter<{ action: string; item: any }>();
@@ -120,6 +147,10 @@ export class TableComponent {
   Previous = faChevronLeft;
   Next = faChevronRight;
   Search = faSearch;
+  Hourglass = faHourglassHalf;
+  Gear = faGear;
+  Check = faCheck;
+  Xmark = faXmark;
 
   currentPage = 1;
   pageSize = 10;
@@ -141,7 +172,20 @@ export class TableComponent {
   }
 
   getNestedValue(obj: any, key: string): any {
-    return key.split('.').reduce((acc, part) => acc && acc[part], obj);
+    return key.split('.').reduce((acc, part) => {
+      if (!acc) return undefined;
+
+      const arrayRegex = /^([a-zA-Z0-9_]+)\[(\d+)\]$/;
+
+      if (arrayRegex.test(part)) {
+        const [, arrayKey, indexStr] = part.match(arrayRegex)!;
+        const index = parseInt(indexStr, 10);
+
+        return acc[arrayKey]?.[index];
+      }
+
+      return acc[part];
+    }, obj);
   }
 
   onSearch(event: Event) {
