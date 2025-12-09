@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faCheck, faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faGear, faHourglassHalf, faSearch, faXmark, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faAngleDown, faAngleUp, faCheck, faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faGear, faHourglassHalf, faMinus, faSearch, faXmark, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-table',
@@ -83,6 +83,27 @@ import { faCheck, faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faG
                         </span>
                       }
                     }
+                  } @else if (header.priority) {
+                    @switch (getNestedValue(row, header.key)) {
+                      @case ('Sin Determinar') {
+                        <span class="bg-[#E2E2E3] text-neutral-500 text-center font-bold text-sm rounded-full px-5 pb-0.5">-</span>
+                      }
+                      @case ('Baja') {
+                        <span class="bg-[#21a300] text-white font-semibold text-sm rounded-full px-3 pb-0.5">
+                          <fa-icon [icon]="Low"></fa-icon>&nbsp; {{ getNestedValue(row, header.key) }}
+                        </span>
+                      }
+                      @case ('Media') {
+                        <span class="bg-[#0071c2] text-white font-semibold text-sm rounded-full px-3 pb-0.5">
+                          <fa-icon [icon]="Medium"></fa-icon>&nbsp; {{ getNestedValue(row, header.key) }}
+                        </span>
+                      }
+                      @case ('Alta') {
+                        <span class="bg-[#eb0004] text-white font-semibold text-sm rounded-full px-3 pb-0.5">
+                          <fa-icon [icon]="High"></fa-icon>&nbsp; {{ getNestedValue(row, header.key) }}
+                        </span>
+                      }
+                    }
                   } @else {
                     {{ getNestedValue(row, header.key) || '-' }}
                   }
@@ -133,7 +154,7 @@ import { faCheck, faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faG
   styles: ``,
 })
 export class TableComponent {
-  @Input() tableConstructor: { key: string, label: string, status?: boolean }[] = [];
+  @Input() tableConstructor: { key: string, label: string, status?: boolean, priority?: boolean }[] = [];
   @Input() data: any[] = [];
   @Input() actions: { action: string; icon: IconDefinition; color: string; title: string }[] = [];
   @Output() action = new EventEmitter<{ action: string; item: any }>();
@@ -147,6 +168,13 @@ export class TableComponent {
   Previous = faChevronLeft;
   Next = faChevronRight;
   Search = faSearch;
+
+  // Priority
+  High = faAngleUp;
+  Medium = faMinus;
+  Low = faAngleDown;
+
+  // Status
   Hourglass = faHourglassHalf;
   Gear = faGear;
   Check = faCheck;
