@@ -13,23 +13,60 @@ import { faPenToSquare, faPlus } from '@fortawesome/free-solid-svg-icons';
     <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
       <div class="bg-white rounded-xl p-6 w-96 shadow-xl">
         <h2 class="text-xl font-semibold">
-          {{ tramite ? 'Editar Trámite' : 'Crear Trámite' }}
+          {{ tramite ? 'Editar estado del Trámite' : 'Crear Trámite' }}
         </h2>
         <form [formGroup]="form" (ngSubmit)="save()">
           <div class="flex flex-col gap-4 my-4">
-            <div>
-              <label for="nombre" class="relative">
-                <input id="nombre" type="text" formControlName="nombre" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
-                <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Nombre</span>
-              </label>
-            </div>
-            <div>
-              <label for="descripcion" class="relative">
-                <input id="descripcion" type="text" formControlName="descripcion" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
-                <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Descripción</span>
-              </label>
-            </div>
-            @if (tramite?.id) {
+            @if (!tramite || tramite.correspondencia.area === currentArea) {
+              <div>
+                <label for="nombre" class="relative">
+                  <input id="nombre" type="text" formControlName="nombre" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
+                  <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Nombre</span>
+                </label>
+              </div>
+              <div formGroupName="correspondencia">
+                <div class="flex flex-col gap-4" formGroupName="actual">
+                  <div>
+                    <label for="remitente" class="relative">
+                      <input id="remitente" type="text" formControlName="remitente" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
+                      <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Remitente</span>
+                    </label>
+                  </div>
+                  <div>
+                    <label for="destinatario" class="relative">
+                      <input id="destinatario" type="text" formControlName="destinatario" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
+                      <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Destinatario</span>
+                    </label>
+                  </div>
+                  <div>
+                    <label for="asunto" class="relative">
+                      <input id="asunto" type="text" formControlName="asunto" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
+                      <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Asunto</span>
+                    </label>
+                  </div>
+                  <div>
+                    <label for="numeroDocumento" class="relative">
+                      <input id="numeroDocumento" type="text" formControlName="numeroDocumento" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
+                      <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Número Documento</span>
+                    </label>
+                  </div>
+                  <div>
+                    <label for="tipo" class="relative">
+                      <select id="tipo" formControlName="tipo" placeholder="" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-pointer px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
+                        <option value="" disabled selected hidden></option>
+                        <option value="Revisión" class="hover:bg-main hover:text-red-700 h-20">Revisión</option>
+                        <option value="Oficio" class="hover:bg-main hover:text-red-700 h-20">Oficio</option>
+                        <option value="Documento" class="hover:bg-main hover:text-red-700 h-20">Documento</option>
+                        <option value="TdR" class="hover:bg-main hover:text-red-700 h-20">TdR</option>
+                        <option value="Otro" class="hover:bg-main hover:text-red-700 h-20">Otro</option>
+                      </select>
+                      <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Tipo</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            }
+            @if (tramite && tramite.correspondencia.area !== currentArea) {
               <div>
                 <label formGroupName="ubicacionActual" for="estado" class="relative">
                   <select id="estado" formControlName="estado" placeholder="" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-pointer px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
@@ -39,7 +76,7 @@ import { faPenToSquare, faPlus } from '@fortawesome/free-solid-svg-icons';
                     <option value="Completado">Completado</option>
                     <option value="Cancelado">Cancelado</option>
                   </select>
-                  <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Área Destino</span>
+                  <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Estado</span>
                 </label>
               </div>
             }
@@ -72,9 +109,26 @@ export class TramiteModalComponent {
 
   form = this.fb.group({
     nombre: ['', Validators.required],
-    descripcion: ['', Validators.required],
+    correspondencia: this.fb.group({
+      area: [''],
+      actual: this.fb.group({
+        remitente: ['', Validators.required],
+        destinatario: ['', Validators.required],
+        asunto: ['', Validators.required],
+        numeroDocumento: ['', Validators.required],
+        tipo: ['', Validators.required],
+      }),
+      previo: this.fb.group({
+        remitente: [''],
+        destinatario: [''],
+        asunto: [''],
+        numeroDocumento: [''],
+        tipo: [''],
+      }),
+    }),
     origen: this.fb.group({
       area: [''],
+      estado: ['Pendiente', Validators.required],
       fecha: [''],
     }),
     ubicacionActual: this.fb.group({
@@ -96,10 +150,7 @@ export class TramiteModalComponent {
   }
 
   save() {
-    if (this.form.invalid) {
-      console.log("Formulario con errores");
-      return;
-    };
+    if (this.form.invalid) return;
 
     const now = formatDate(new Date(), 'EEE dd MMM, HH:mm', 'es');
     const value = this.form.value as Tramite;
@@ -107,8 +158,10 @@ export class TramiteModalComponent {
     if (this.tramite?.id) {
       this.tramitesService.updateTramite(this.tramite.id, value).then(() => this.close.emit());
     } else {
+      value.correspondencia.area = this.currentArea;
       value.origen = {
         area: this.currentArea,
+        estado: 'Pendiente',
         fecha: now.replace(/\b\w/g, l => l.toUpperCase()),
       }
       value.ubicacionActual = {

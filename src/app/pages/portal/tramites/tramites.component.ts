@@ -1,4 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
+import { UsuariosService } from '../../../services/usuarios.service';
+import { AreaService } from '../../../services/area.service';
 import { TramitesService } from '../../../services/tramites.service';
 import { Tramite } from '../../../interfaces/tramite';
 import { faEdit, faEye, faFolderOpen, faPlus, faShareFromSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -6,11 +8,11 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { TableComponent } from '../../../components/table/table.component';
 import { TramiteModalComponent } from "../../../components/tramite-modal/tramite-modal.component";
 import { ConfirmacionEliminarModalComponent } from "../../../components/confirmacion-eliminar-modal/confirmacion-eliminar-modal.component";
-import { AreaService } from '../../../services/area.service';
 import { Area } from '../../../interfaces/area';
 import { FormsModule } from '@angular/forms';
 import { TramiteAdjuntarComponent } from "../../../components/tramite-adjuntar/tramite-adjuntar.component";
 import { TramiteDerivarComponent } from "../../../components/tramite-derivar/tramite-derivar.component";
+import { combineLatest, filter, map, Subscription, switchMap, tap } from 'rxjs';
 
 @Component({
   selector: 'app-tramites',
@@ -58,6 +60,7 @@ import { TramiteDerivarComponent } from "../../../components/tramite-derivar/tra
     @if (isDerivarOpen()) {
       <app-tramite-derivar
         [tramite]="selectedTramite()"
+        [currentArea]="currentArea"
         (close)="isDerivarOpen.set(false);"
       ></app-tramite-derivar>
     }
@@ -65,16 +68,19 @@ import { TramiteDerivarComponent } from "../../../components/tramite-derivar/tra
   styles: ``,
 })
 export class TramitesComponent {
-  private tramitesService = inject(TramitesService);
+  private usuariosService = inject(UsuariosService);
   private areasService = inject(AreaService);
+  private tramitesService = inject(TramitesService);
 
+  private dataSubscription: Subscription | null = null;
+  currentArea: string = '';
   tableHeaders = [
-    { key: 'nombre', label: 'Trámite' },
-    { key: 'descripcion', label: 'Descripción' },
-    { key: 'estado', label: 'Estado' },
-    { key: 'origen.area', label: 'Aréa' },
-    { key: 'origen.fecha', label: 'Fecha Creación' },
-    { key: 'ubicacionActual.area', label: 'Área Actual' },
+    { key: 'nombre', label: 'Nombre' },
+    { key: 'correspondencia.actual.asunto', label: 'Asunto' },
+    { key: 'ubicacionActual.estado', label: 'Estado', status: true },
+    { key: 'correspondencia.actual.remitente', label: 'Remitente' },
+    { key: 'correspondencia.actual.destinatario', label: 'Destinatario' },
+    { key: 'trazabilidadAreas[0].area', label: 'Área' },
     { key: 'ubicacionActual.fechaIngreso', label: 'Fecha De Ingreso' },
   ];
   tableActions = [
@@ -99,16 +105,18 @@ export class TramitesComponent {
   Add = faPlus;
 
   ngOnInit() {
-    console.log(this.currentArea);
-    this.tramitesService.getTramites(this.currentArea).subscribe({
-      next: (data) => {
-        this.tramites.set(data);
-      }
-    });
-    this.areasService.getAreas().subscribe({
-      next: (data) => {
-        this.areas.set(data);
-      }
+    this.dataSubscription = combineLatest([
+      this.usuariosService.dataUsuario$,
+      this.areasService.getAreas(),
+    ])
+    .pipe(
+      map(([user, areas]) => areas.find(a => a.rolAsociado === user?.rol)?.id),
+      filter((areaId): areaId is string => !!areaId),
+      tap(areaId => this.currentArea = areaId),
+      switchMap(areaId => this.tramitesService.getTramites(areaId)),
+    )
+    .subscribe(data => {
+      this.tramites.set(data);
     });
   }
 
@@ -167,5 +175,9 @@ export class TramitesComponent {
       this.tramitesService.deleteTramite(this.selectedTramite()!.id!);
     }
     this.isConfirmOpen.set(false);
+  }
+
+  ngOnDestroy() {
+    this.dataSubscription?.unsubscribe();
   }
 }

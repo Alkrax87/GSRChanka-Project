@@ -29,7 +29,6 @@ import { formatDate } from '@angular/common';
                 </div>
                 <div class="text-main text-lg font-semibold my-auto">{{ tramite?.nombre }}</div>
               </div>
-              <p class="text-neutral-600 text-sm mt-2">{{ tramite?.descripcion }}</p>
             </div>
           </div>
           <div>
@@ -41,7 +40,7 @@ import { formatDate } from '@angular/common';
               </div>
               <div class="border border-main rounded-xl p-4">
                 <p class="text-main font-semibold text-xs"><fa-icon [icon]="Area"></fa-icon> Area</p>
-                <p class="text-neutral-600 text-sm">{{ tramite?.ubicacionActual?.area }}</p>
+                <p class="text-neutral-600 text-sm">{{ getAreaName(tramite!.ubicacionActual.area) }}</p>
               </div>
             </div>
           </div>
@@ -51,8 +50,8 @@ import { formatDate } from '@angular/common';
                 <label for="areaDestino" class="relative">
                   <select id="areaDestino" formControlName="areaDestino" placeholder="" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-pointer px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
                     <option value="" disabled selected hidden></option>
-                    @for (area of areas; track $index) {
-                      <option [value]="area.id" class="hover:bg-main hover:text-red-700 h-20">{{ area.nombrearea }}</option>
+                    @for (area of getFilteredAreas(); track $index) {
+                      <option [value]="area.id" class="hover:bg-main hover:text-red-700 h-20">{{ area.nombre }}</option>
                     }
                   </select>
                   <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Área Destino</span>
@@ -74,6 +73,7 @@ import { formatDate } from '@angular/common';
 })
 export class TramiteDerivarComponent {
   @Input() tramite!: Tramite | null;
+  @Input() currentArea!: string;
   @Output() close = new EventEmitter<void>();
 
   private fb = inject(FormBuilder);
@@ -91,6 +91,23 @@ export class TramiteDerivarComponent {
   Area = faBuilding;
 
   form = this.fb.group({
+    correspondencia: this.fb.group({
+      area: [''],
+      actual: this.fb.group({
+        remitente: ['', Validators.required],
+        destinatario: ['', Validators.required],
+        asunto: ['', Validators.required],
+        numeroDocumento: ['', Validators.required],
+        tipo: ['', Validators.required],
+      }),
+      previo: this.fb.group({
+        remitente: [''],
+        destinatario: [''],
+        asunto: [''],
+        numeroDocumento: [''],
+        tipo: [''],
+      }),
+    }),
     areaDestino: ['', Validators.required],
   });
 
@@ -101,6 +118,9 @@ export class TramiteDerivarComponent {
     this.usuariosService.dataUsuario$.subscribe({
       next: (data) => (this.usuario = data!)
     });
+    if (this.tramite) {
+      this.form.patchValue(this.tramite)
+    }
   }
 
   derivar() {
@@ -110,12 +130,10 @@ export class TramiteDerivarComponent {
     const areaDestino = this.form.value.areaDestino;
 
     const trazabilidad = [...this.tramite.trazabilidadAreas];
-    const ultimaArea = trazabilidad[trazabilidad.length - 1];
+    trazabilidad[0].fechaSalida = now.replace(/\b\w/g, l => l.toUpperCase());
+    trazabilidad[0].estado = 'Completado';
 
-    ultimaArea.fechaSalida = now.replace(/\b\w/g, l => l.toUpperCase());
-    ultimaArea.estado = 'Completado';
-
-    trazabilidad.push({
+    trazabilidad.unshift({
       area: areaDestino!,
       fechaIngreso: now.replace(/\b\w/g, l => l.toUpperCase()),
       estado: 'Pendiente'
@@ -131,6 +149,15 @@ export class TramiteDerivarComponent {
     });
 
     this.close.emit();
+  }
+
+  getFilteredAreas(): Area[] {
+    return this.areas.filter(a => a.id !== this.currentArea);
+  }
+
+  getAreaName(areaId: string): string {
+    const area = this.areas.find(a => a.id === areaId);
+    return area ? area.nombre : 'Desconocida';
   }
 
   ngOnDestroy() {
