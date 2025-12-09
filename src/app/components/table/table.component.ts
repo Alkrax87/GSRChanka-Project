@@ -1,7 +1,8 @@
 import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, formatDate } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faAngleDown, faAngleUp, faCheck, faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faGear, faHourglassHalf, faMinus, faSearch, faXmark, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { Timestamp } from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-table',
@@ -104,6 +105,8 @@ import { faAngleDown, faAngleUp, faCheck, faChevronDown, faChevronLeft, faChevro
                         </span>
                       }
                     }
+                  } @else if (header.isDate) {
+                    {{ getDateTransformed(getNestedValue(row, header.key)) }}
                   } @else {
                     {{ getNestedValue(row, header.key) || '-' }}
                   }
@@ -154,7 +157,7 @@ import { faAngleDown, faAngleUp, faCheck, faChevronDown, faChevronLeft, faChevro
   styles: ``,
 })
 export class TableComponent {
-  @Input() tableConstructor: { key: string, label: string, status?: boolean, priority?: boolean }[] = [];
+  @Input() tableConstructor: { key: string, label: string, status?: boolean, priority?: boolean, isDate?: boolean }[] = [];
   @Input() data: any[] = [];
   @Input() actions: { action: string; icon: IconDefinition; color: string; title: string }[] = [];
   @Output() action = new EventEmitter<{ action: string; item: any }>();
@@ -214,6 +217,11 @@ export class TableComponent {
 
       return acc[part];
     }, obj);
+  }
+
+  getDateTransformed(date: Timestamp) {
+    const now = formatDate(date.toDate(), 'EEE dd MMM, HH:mm', 'es');
+    return now.replace(/\b\w/g, l => l.toUpperCase());;
   }
 
   onSearch(event: Event) {
