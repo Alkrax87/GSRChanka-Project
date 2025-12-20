@@ -11,7 +11,7 @@ export class TramitesService {
   tramitesCollection = collection(this.firestore, 'tramites');
 
   getTramites(area: string) {
-    const queryTramites = query(this.tramitesCollection, where('ubicacionActual.area', '==', area));
+    const queryTramites = query(this.tramitesCollection, where('areaActual', '==', area));
     return collectionData(queryTramites, { idField: 'id' }) as Observable<Tramite[]>;
   }
 
