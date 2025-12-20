@@ -54,6 +54,7 @@ import { combineLatest, filter, map, Subscription, switchMap, tap } from 'rxjs';
     @if (isAdjuntarOpen()) {
       <app-tramite-adjuntar
         [tramite]="selectedTramite()"
+        [currentArea]="currentArea"
         (close)="isAdjuntarOpen.set(false);"
       ></app-tramite-adjuntar>
     }
@@ -76,18 +77,16 @@ export class TramitesComponent {
   currentArea: string = '';
   tableHeaders = [
     { key: 'nombre', label: 'Nombre' },
-    { key: 'correspondencia.actual.asunto', label: 'Asunto' },
-    { key: 'ubicacionActual.estado', label: 'Estado', status: true },
-    { key: 'correspondencia.actual.remitente', label: 'Remitente' },
-    { key: 'correspondencia.actual.destinatario', label: 'Destinatario' },
-    { key: 'trazabilidadAreas[0].area', label: 'Área' },
-    { key: 'ubicacionActual.fechaIngreso', label: 'Fecha De Ingreso' },
+    { key: 'trazabilidad[0].prioridad', label: 'Prioridad', priority: true },
+    { key: 'trazabilidad[0].estado', label: 'Estado', status: true },
+    { key: 'trazabilidad[0].fechaIngreso', label: 'Fecha De Ingreso', isDate: true },
+    { key: 'trazabilidad[0].observaciones', label: 'Observaciones' },
   ];
   tableActions = [
     { action: 'show', icon: faEye, color: 'text-main', title: 'Ver'},
     { action: 'edit', icon: faEdit, color: 'text-yellow-400', title: 'Editar'},
     { action: 'delete', icon: faTrash, color: 'text-red-600', title: 'Eliminar'},
-    { action: 'files', icon: faFolderOpen, color: 'text-neutral-600', title: 'Adjuntar'},
+    { action: 'files', icon: faFolderOpen, color: 'text-amber-500', title: 'Adjuntar'},
     { action: 'send', icon: faShareFromSquare, color: 'text-green-600', title: 'Derivar'},
   ]
 
