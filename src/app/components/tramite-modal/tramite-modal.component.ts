@@ -18,9 +18,9 @@ import { faPenToSquare, faPlus } from '@fortawesome/free-solid-svg-icons';
           <div class="flex flex-col gap-4 my-4">
             @if (tramite?.areaActual === currentArea || !tramite) {
               <div>
-                <label for="nombre" class="relative">
-                  <input id="nombre" type="text" formControlName="nombre" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
-                  <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Nombre</span>
+                <label for="asunto" class="relative">
+                  <input id="asunto" type="text" formControlName="asunto" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
+                  <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Asunto</span>
                 </label>
               </div>
             }
@@ -76,7 +76,7 @@ export class TramiteModalComponent {
   private tramitesService = inject(TramitesService);
 
   form = this.fb.group({
-    nombre: ['', Validators.required],
+    asunto: ['', Validators.required],
     trazabilidad: this.fb.array<Movimiento>([]),
   });
 
@@ -92,7 +92,7 @@ export class TramiteModalComponent {
       });
 
       this.form.patchValue({
-        nombre: this.tramite.nombre
+        asunto: this.tramite.asunto
       });
     } else {
       const arr = this.form.get('trazabilidad') as FormArray;
@@ -128,6 +128,7 @@ export class TramiteModalComponent {
         areaDestino: this.currentArea,
         fechaIngreso: new Date(),
         fechaSalida: null,
+        responsable: null,
         prioridad: 'Sin Determinar',
         estado: 'Pendiente',
         observaciones: '',

@@ -46,7 +46,7 @@ import { combineLatest, filter, map, Subscription, switchMap, tap } from 'rxjs';
     }
     @if (isConfirmOpen()) {
       <app-confirmacion-eliminar-modal
-        [message]="'¿Eliminar el trámite ' + selectedTramite()!.nombre + '?'"
+        [message]="'¿Eliminar el trámite ' + selectedTramite()!.asunto + '?'"
         (confirm)="confirmDelete()"
         (cancel)="isConfirmOpen.set(false)"
       ></app-confirmacion-eliminar-modal>
@@ -60,7 +60,7 @@ import { combineLatest, filter, map, Subscription, switchMap, tap } from 'rxjs';
     }
     @if (isDerivarOpen()) {
       <app-tramite-derivar
-        [tramite]="selectedTramite()"
+        [tramite]="selectedTramite()!"
         [currentArea]="currentArea"
         (close)="isDerivarOpen.set(false);"
       ></app-tramite-derivar>
@@ -76,7 +76,10 @@ export class TramitesComponent {
   private dataSubscription: Subscription | null = null;
   currentArea: string = '';
   tableHeaders = [
-    { key: 'nombre', label: 'Nombre' },
+    { key: 'asunto', label: 'Asunto' },
+    { key: 'trazabilidad[0].areaOrigen', label: 'Origen' },
+    { key: 'trazabilidad[0].responsable', label: 'Responsable' },
+    { key: 'documentos.length', label: 'Adjuntos' },
     { key: 'trazabilidad[0].prioridad', label: 'Prioridad', priority: true },
     { key: 'trazabilidad[0].estado', label: 'Estado', status: true },
     { key: 'trazabilidad[0].fechaIngreso', label: 'Fecha De Ingreso', isDate: true },

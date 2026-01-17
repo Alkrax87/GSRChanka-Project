@@ -9,17 +9,18 @@ export interface Documento {
 
 export interface Movimiento {
   areaOrigen: string;
-  areaDestino: string;
+  areaDestino: string | null;
   fechaIngreso: Date;
   fechaSalida: Date | null;
+  responsable: string | null;
   prioridad: 'Sin Determinar' | 'Baja' | 'Media' | 'Alta';
   estado: 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado';
-  observaciones?: string;
+  observaciones: string;
 }
 
 export interface Tramite {
   id?: string;
-  nombre: string;
+  asunto: string;
   documentos: Documento[];
   trazabilidad: Movimiento[];
   estadoGlobal: 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado';
