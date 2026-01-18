@@ -2,30 +2,27 @@ import { Component, inject, signal } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faEdit, faEye, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { UsuariosService } from '../../../../services/usuarios.service';
-import { RolesService } from '../../../../services/roles.service';
-import { combineLatest } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { BreadcrumbComponent } from "../../../../components/breadcrumb/breadcrumb.component";
 import { TableComponent } from '../../../../components/table/table.component';
 import { UsuarioModalComponent } from '../../../../components/usuario-modal/usuario-modal.component';
 import { UsuarioProfileComponent } from '../../../../components/usuario-profile/usuario-profile.component';
 import { ConfirmacionEliminarModalComponent } from '../../../../components/confirmacion-eliminar-modal/confirmacion-eliminar-modal.component';
 import { Usuario } from '../../../../interfaces/usuario';
-import { Rol } from '../../../../interfaces/rol';
 
 @Component({
   selector: 'app-usuarios',
-  imports: [FontAwesomeModule, UsuarioModalComponent, ConfirmacionEliminarModalComponent, TableComponent, UsuarioProfileComponent],
+  imports: [FontAwesomeModule, BreadcrumbComponent, TableComponent, UsuarioModalComponent, UsuarioProfileComponent, ConfirmacionEliminarModalComponent],
   template: `
-    <div class="flex flex-col gap-5 p-2 sm:p-10 select-none">
-      <p class="text-neutral-400 text-xs font-semibold">
-        <span class="text-main">Seguridad</span> &nbsp;&nbsp;/&nbsp;&nbsp; Usuarios
-      </p>
-      <div class="flex items-center -mt-5 justify-between">
+    <div class="flex flex-col gap-4 p-10 select-none">
+      <!-- Top -->
+      <app-breadcrumb [path]="'Usuarios'"></app-breadcrumb>
+      <div class="flex items-center -mt-3 justify-between">
         <h1 class="text-main text-4xl font-bold">USUARIOS</h1>
-        <button (click)="openCreate()" class="bg-main hover:bg-main-hover px-4 py-2 text-white rounded-full">
-          <fa-icon [icon]="Add"></fa-icon>&nbsp; Agregar Usuario
+        <button (click)="onAdd()" type="button" class="bg-main hover:bg-main-hover text-white flex items-center gap-2 px-4 py-2 rounded-full">
+          <fa-icon [icon]="Add"></fa-icon>&nbsp; Agregar
         </button>
       </div>
+      <!-- Table -->
       <app-table
         [tableConstructor]="tableHeaders"
         [data]="usuarios()"
@@ -58,15 +55,15 @@ import { Rol } from '../../../../interfaces/rol';
 })
 export class UsuariosComponent {
   private usuariosService = inject(UsuariosService);
-  private rolesService = inject(RolesService);
+  usuarios = this.usuariosService.usuarios;
 
+  // Table
   tableHeaders = [
-    { key: 'dni', label: 'DNI' },
     { key: 'nombres', label: 'Nombres' },
     { key: 'apellidos', label: 'Apellidos' },
     { key: 'telefono', label: 'Teléfono' },
     { key: 'correo', label: 'Correo' },
-    { key: 'rol', label: 'Rol' },
+    { key: 'areaId', label: 'Area', isArea: true },
     { key: 'usuario', label: 'Usuario' },
   ];
   tableActions = [
@@ -75,9 +72,7 @@ export class UsuariosComponent {
     { action: 'delete', icon: faTrash, color: 'text-red-600', title: 'Eliminar'},
   ]
 
-  // Signals
-  usuarios = signal<Usuario[]>([]);
-  roles = signal<Rol[]>([]);
+  // Modals
   isUserModalOpen = signal(false);
   isUserProfileOpen = signal(false);
   isConfirmOpen = signal(false);
@@ -86,68 +81,43 @@ export class UsuariosComponent {
   // Icons
   Add = faPlus;
 
-  constructor() {
-    combineLatest([
-      this.usuariosService.getUsers(),
-      this.rolesService.getRoles(),
-    ]).pipe(takeUntilDestroyed()).subscribe({
-      next: ([usuarios, roles]) => {
-        this.usuarios.set(
-          usuarios.map((usuario) => {
-            const rol = roles.find((rol) => rol.id === usuario.rol);
-
-            return {
-              ...usuario,
-              rol: rol?.nombre ?? 'Sin rol',
-            };
-          })
-        );
-        this.roles.set(roles);
-      },
-    });
-  }
-
   handleAction({action, item}: { action: string; item: any }) {
     switch (action) {
       case 'show':
-        this.openShow(item);
+        this.onShow(item);
         break;
       case 'edit':
-        this.openEdit(item);
+        this.onEdit(item);
         break;
       case 'delete':
-        this.openDelete(item);
+        this.onDelete(item);
         break;
     }
   }
 
-  openCreate() {
+  onAdd() {
     this.selectedUsuario.set(null);
     this.isUserModalOpen.set(true);
   }
 
-  openShow(usuario: Usuario) {
+  onShow(usuario: Usuario) {
     this.selectedUsuario.set(usuario);
     this.isUserProfileOpen.set(true);
   }
 
-  openEdit(usuario: Usuario) {
+  onEdit(usuario: Usuario) {
     this.selectedUsuario.set(usuario);
     this.isUserModalOpen.set(true);
   }
 
-  openDelete(usuario: Usuario) {
+  onDelete(usuario: Usuario) {
     this.selectedUsuario.set(usuario);
     this.isConfirmOpen.set(true);
   }
 
-  async confirmDelete() {
+  confirmDelete() {
     if (this.selectedUsuario()?.id) {
-      const rolId = this.roles().find((rol) => rol.nombre === this.selectedUsuario()!.rol)?.id;
-      if (rolId !== undefined) {
-        await this.rolesService.changeRolUserCounter(rolId!, -1);
-      }
-      await this.usuariosService.deleteUser(this.selectedUsuario()!.id!);
+      this.usuariosService.deleteUsuario(this.selectedUsuario()!.id!);
     }
     this.isConfirmOpen.set(false);
   }
