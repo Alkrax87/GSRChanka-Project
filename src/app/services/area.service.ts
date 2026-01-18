@@ -1,30 +1,40 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { Firestore, collection, collectionData, addDoc, deleteDoc, doc, updateDoc } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Area } from '../interfaces/area';
 
-
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AreaService {
   private firestore = inject(Firestore);
   areasCollection = collection(this.firestore, 'areas');
 
-  getAreas(): Observable<Area[]> {
-    return collectionData(this.areasCollection, { idField: 'id' }) as Observable<Area[]>;
+  private _areas = signal<Area[]>([]);
+  public areas = this._areas.asReadonly();
+
+  constructor() {
+    this.getAreas();
   }
 
-  addArea(area: Area) {
+  private getAreas() {
+    (collectionData(this.areasCollection, { idField: 'id' }) as Observable<Area[]>).pipe(takeUntilDestroyed()).subscribe({
+      next: (data) => this._areas.set(data),
+      error: (err) => console.error('Error cargando áreas', err),
+    });
+  }
+
+  public addArea(area: Area) {
     return addDoc(this.areasCollection, area);
   }
 
-  updateArea(id: string, area: Partial<Area>) {
+  public updateArea(id: string, area: Partial<Area>) {
     const areaDoc = doc(this.firestore, `areas/${id}`);
     return updateDoc(areaDoc, area);
   }
 
-  deleteArea(id: string) {
+  public deleteArea(id: string) {
     const areaDoc = doc(this.firestore, `areas/${id}`);
     return deleteDoc(areaDoc);
   }
