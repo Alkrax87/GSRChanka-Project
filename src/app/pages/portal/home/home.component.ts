@@ -1,16 +1,14 @@
 import { Component, inject } from '@angular/core';
-import { UsuariosService } from '../../../services/usuarios.service';
-import { Usuario } from '../../../interfaces/usuario';
-import { Subscription } from 'rxjs';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-home',
   imports: [],
   template: `
     <div class="relative flex flex-col justify-center items-center p-5 h-full" style="height: calc(100vh - 64px);">
-      @if (usuario) {
+      @if (usuario()) {
         <h1 class="text-4xl animate-fade-up delay-75">
-          Bienvenido <span class="text-main font-bold">{{ usuario.nombres + ' ' + usuario.apellidos }}</span>
+          Bienvenido <span class="text-main font-bold">{{ usuario()!.nombres + ' ' + usuario()!.apellidos }}</span>
         </h1>
       }
       <div class="absolute bottom-0">
@@ -35,18 +33,5 @@ import { Subscription } from 'rxjs';
   `,
 })
 export class HomeComponent {
-  private usuariosService = inject(UsuariosService);
-
-  private usuarioSubscription: Subscription | null = null;
-  usuario: Usuario | null = null;
-
-  ngOnInit() {
-    this.usuarioSubscription = this.usuariosService.dataUsuario$.subscribe({
-      next: (data) => (this.usuario = data),
-    });
-  }
-
-  ngOnDestroy() {
-    this.usuarioSubscription?.unsubscribe();
-  }
+  usuario = inject(AuthService).usuarioLogged;
 }

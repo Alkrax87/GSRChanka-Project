@@ -1,15 +1,14 @@
-import { CommonModule } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faAngleDown, faAngleRight, faArrowRightFromBracket, faBuilding, faClipboardList, faHome, faMagnifyingGlass, faUserShield, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { LogOutComponent } from "../log-out/log-out.component";
-import { UsuariosService } from '../../services/usuarios.service';
-import { Usuario } from '../../interfaces/usuario';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [FontAwesomeModule, RouterLink, RouterLinkActive, CommonModule, LogOutComponent],
+  imports: [FontAwesomeModule, RouterLink, RouterLinkActive, NgClass, LogOutComponent],
   template: `
     <div
       class="flex flex-col bg-neutral-800 duration-300 h-[100vh] fixed left-0 top-0 text-white z-50"
@@ -115,10 +114,10 @@ import { Usuario } from '../../interfaces/usuario';
             >
             @if (isOpen) {
               <div class="w-full truncate">
-                @if (user) {
+                @if (usuario()) {
                   <div class="animate-fade-right delay-75">
-                    <p class="font-semibold text-sm -mb-1 truncate">{{ user.nombres + ' ' + user.apellidos }}</p>
-                    <p class="text-xs">{{ user.usuario }}</p>
+                    <p class="font-semibold text-sm -mb-1 truncate">{{ usuario()!.nombres + ' ' + usuario()!.apellidos }}</p>
+                    <p class="text-xs">{{ '@' + usuario()!.usuario }}</p>
                   </div>
                 }
               </div>
@@ -155,9 +154,8 @@ import { Usuario } from '../../interfaces/usuario';
 export class SidebarComponent {
   @Output() sidebarStatus = new EventEmitter<boolean>();
 
-  private usuariosService = inject(UsuariosService);
+  usuario = inject(AuthService).usuarioLogged;
 
-  user: Usuario | null = null;
   isLogOutModalOpen = false;
   isOpen: boolean = true;
 
@@ -166,13 +164,7 @@ export class SidebarComponent {
   ArrowClose = faAngleRight;
   LogOut = faArrowRightFromBracket;
 
-  ngOnInit() {
-    this.usuariosService.getUserLoggedData();
-    this.usuariosService.dataUsuario$.subscribe({
-      next: (data) => (this.user = data)
-    });
-  }
-
+  // Sidebar
   sections: {
     sectionName: string;
     routes: {

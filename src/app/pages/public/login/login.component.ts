@@ -93,7 +93,7 @@ export class LoginComponent {
     const { username, password } = this.loginForm.value;
 
     try {
-      const userCredential = await this.authService.login(username, password);
+      await this.authService.login(username, password);
       this.router.navigate(['/portal']);
     } catch (error: any) {
       this.errorMessage = 'El usuario o contraseña son incorrectos.';

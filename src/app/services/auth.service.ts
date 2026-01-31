@@ -1,34 +1,59 @@
-import { Injectable } from '@angular/core';
-import { Auth, browserSessionPersistence, createUserWithEmailAndPassword, setPersistence, signInWithEmailAndPassword, signOut } from '@angular/fire/auth';
+import { inject, Injectable, signal } from '@angular/core';
+import { Auth, browserSessionPersistence, createUserWithEmailAndPassword, onAuthStateChanged, setPersistence, signInWithEmailAndPassword, signOut } from '@angular/fire/auth';
 import { Router } from '@angular/router';
+import { Usuario } from '../interfaces/usuario';
+import { doc, Firestore, getDoc } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  constructor(private auth: Auth, private router: Router) {}
+  private auth = inject(Auth);
+  private firestore = inject(Firestore);
+  private router = inject(Router);
 
-  getUserUid(): string | undefined {
-    return this.auth.currentUser?.uid;
+  private _usuariologged = signal<Usuario | null>(null);
+  public usuarioLogged = this._usuariologged.asReadonly();
+
+  constructor() {
+    this.listenAuthChanges();
+  }
+
+  private listenAuthChanges() {
+    onAuthStateChanged(this.auth, async (user) => {
+      if (user) {
+        this.loadUserData(user.uid);
+      } else {
+        this._usuariologged.set(null);
+      }
+    });
+  }
+
+  private async loadUserData(uid: string) {
+    const userRef = doc(this.firestore, `usuarios/${uid}`);
+    const snapshot = await getDoc(userRef);
+
+    if (snapshot.exists()) {
+      this._usuariologged.set({
+        id: snapshot.id,
+        ...snapshot.data(),
+      } as Usuario);
+    } else {
+      this._usuariologged.set(null);
+    }
   }
 
   registerUser(email: string, password: string) {
     return createUserWithEmailAndPassword(this.auth, email, password);
   }
 
-  login(email: string, password: string) {
-    return setPersistence(this.auth, browserSessionPersistence).then(() => {
-      return signInWithEmailAndPassword(this.auth, email + '@gsrchanka.com', password);
-    });
+  async login(email: string, password: string) {
+    await setPersistence(this.auth, browserSessionPersistence)
+    return signInWithEmailAndPassword(this.auth, email + '@gsrchanka.com', password);
   }
 
   async logOut() {
-    try {
-      await signOut(this.auth);
-
-      this.router.navigate(['/login']);
-    } catch (error) {
-      console.log(error);
-    }
+    await signOut(this.auth);
+    this.router.navigate(['/login']);
   }
 }

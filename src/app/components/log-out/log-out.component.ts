@@ -1,9 +1,11 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
+import { faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'app-log-out',
-  imports: [],
+  imports: [FontAwesomeModule],
   template: `
     <div class="bg-black bg-opacity-70 fixed inset-0 z-50 flex justify-center items-center select-none">
       <div class="bg-white p-5 rounded-xl w-full max-w-md">
@@ -14,11 +16,9 @@ import { AuthService } from '../../services/auth.service';
           Tu sesión se cerrará y volverás a la página de inicio.
         </p>
         <div class="flex justify-end gap-2">
-          <button (click)="onCancel()" class="hover:bg-neutral-50 border border-neutral-200 rounded-lg px-5 py-1.5 font-semibold">
-            Cancel
-          </button>
-          <button (click)="onLogOut()" class="bg-main hover:bg-opacity-80 text-white rounded-lg px-5 py-1.5 font-semibold">
-            Cerrar Sesión
+          <button (click)="onCancel()" class="bg-neutral-100 hover:bg-neutral-200/75 px-4 py-2 rounded-full">Cancelar</button>
+          <button (click)="onLogOut()" class="bg-main hover:bg-main-hover text-white flex items-center gap-2 px-4 py-2 rounded-full">
+            <fa-icon [icon]="LogOut"></fa-icon> Cerrar Sesión
           </button>
         </div>
       </div>
@@ -27,15 +27,13 @@ import { AuthService } from '../../services/auth.service';
   styles: ``
 })
 export class LogOutComponent {
-  constructor(private authService: AuthService) {}
-
   @Output() cancel = new EventEmitter<void>();
 
-  onCancel() {
-    this.cancel.emit();
-  }
+  private authService = inject(AuthService);
 
-  onLogOut() {
-    this.authService.logOut();
-  }
+  LogOut = faArrowRightFromBracket;
+
+  onCancel() { this.cancel.emit() }
+
+  onLogOut() { this.authService.logOut() }
 }
