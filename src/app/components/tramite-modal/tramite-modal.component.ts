@@ -4,6 +4,7 @@ import { Movimiento, Tramite } from '../../interfaces/tramite';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TramitesService } from '../../services/tramites.service';
 import { faPenToSquare, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-tramite-modal',
@@ -42,7 +43,9 @@ import { faPenToSquare, faPlus } from '@fortawesome/free-solid-svg-icons';
                   <select id="estado" formControlName="estado" placeholder="" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-pointer px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
                     <option value="" disabled selected hidden></option>
                     <option value="Pendiente">Pendiente</option>
+                    <option value="Cancelado">Cancelado</option>
                     <option value="En Proceso">En Proceso</option>
+                    <option value="Completado">Completado</option>
                   </select>
                   <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Estado</span>
                 </label>
@@ -69,11 +72,11 @@ import { faPenToSquare, faPlus } from '@fortawesome/free-solid-svg-icons';
 })
 export class TramiteModalComponent {
   @Input() tramite: Tramite | null = null;
-  @Input() currentArea!: string;
   @Output() close = new EventEmitter<void>();
 
   private fb = inject(FormBuilder);
   private tramitesService = inject(TramitesService);
+  currentArea = inject(AuthService).usuarioLogged()!.areaId;
 
   form = this.fb.group({
     asunto: ['', Validators.required],

@@ -1,6 +1,4 @@
 import { Component, inject, signal } from '@angular/core';
-import { UsuariosService } from '../../../services/usuarios.service';
-import { AreaService } from '../../../services/area.service';
 import { TramitesService } from '../../../services/tramites.service';
 import { Tramite } from '../../../interfaces/tramite';
 import { faEdit, faEye, faFolderOpen, faPlus, faShareFromSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -12,7 +10,8 @@ import { Area } from '../../../interfaces/area';
 import { FormsModule } from '@angular/forms';
 import { TramiteAdjuntarComponent } from "../../../components/tramite-adjuntar/tramite-adjuntar.component";
 import { TramiteDerivarComponent } from "../../../components/tramite-derivar/tramite-derivar.component";
-import { combineLatest, filter, map, Subscription, switchMap, tap } from 'rxjs';
+import { Subscription } from 'rxjs';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-tramites',
@@ -40,7 +39,6 @@ import { combineLatest, filter, map, Subscription, switchMap, tap } from 'rxjs';
     @if (isTramiteModalOpen()) {
       <app-tramite-modal
         [tramite]="selectedTramite()"
-        [currentArea]="currentArea"
         (close)="isTramiteModalOpen.set(false)"
       ></app-tramite-modal>
     }
@@ -54,14 +52,13 @@ import { combineLatest, filter, map, Subscription, switchMap, tap } from 'rxjs';
     @if (isAdjuntarOpen()) {
       <app-tramite-adjuntar
         [tramite]="selectedTramite()"
-        [currentArea]="currentArea"
+        [currentArea]="usuario()!.areaId"
         (close)="isAdjuntarOpen.set(false);"
       ></app-tramite-adjuntar>
     }
     @if (isDerivarOpen()) {
       <app-tramite-derivar
         [tramite]="selectedTramite()!"
-        [currentArea]="currentArea"
         (close)="isDerivarOpen.set(false);"
       ></app-tramite-derivar>
     }
@@ -69,16 +66,15 @@ import { combineLatest, filter, map, Subscription, switchMap, tap } from 'rxjs';
   styles: ``,
 })
 export class TramitesComponent {
-  private usuariosService = inject(UsuariosService);
-  private areasService = inject(AreaService);
   private tramitesService = inject(TramitesService);
+  tramites = this.tramitesService.tramites;
+  usuario = inject(AuthService).usuarioLogged;
 
   private dataSubscription: Subscription | null = null;
-  currentArea: string = '';
   tableHeaders = [
     { key: 'asunto', label: 'Asunto' },
-    { key: 'trazabilidad[0].areaOrigen', label: 'Origen' },
-    { key: 'trazabilidad[0].responsable', label: 'Responsable' },
+    { key: 'trazabilidad[0].areaOrigen', label: 'Origen', isArea: true },
+    { key: 'trazabilidad[0].responsable', label: 'Responsable', isUsuario: true },
     { key: 'documentos.length', label: 'Adjuntos' },
     { key: 'trazabilidad[0].prioridad', label: 'Prioridad', priority: true },
     { key: 'trazabilidad[0].estado', label: 'Estado', status: true },
@@ -94,7 +90,6 @@ export class TramitesComponent {
   ]
 
   // Signals
-  tramites = signal<Tramite[]>([]);
   areas = signal<Area[]>([]);
   isTramiteModalOpen = signal(false);
   isTramiteShowOpen = signal(false);
@@ -105,22 +100,6 @@ export class TramitesComponent {
 
   //Icons
   Add = faPlus;
-
-  ngOnInit() {
-    this.dataSubscription = combineLatest([
-      this.usuariosService.dataUsuario$,
-      this.areasService.getAreas(),
-    ])
-    .pipe(
-      map(([user, areas]) => areas.find(a => a.rolAsociado === user?.rol)?.id),
-      filter((areaId): areaId is string => !!areaId),
-      tap(areaId => this.currentArea = areaId),
-      switchMap(areaId => this.tramitesService.getTramites(areaId)),
-    )
-    .subscribe(data => {
-      this.tramites.set(data);
-    });
-  }
 
   handleAction({action, item}: { action: string; item: any }) {
     switch (action) {

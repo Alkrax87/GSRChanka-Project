@@ -1,15 +1,12 @@
-import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
 import { Tramite } from '../../interfaces/tramite';
 import { AreaService } from '../../services/area.service';
 import { Area } from '../../interfaces/area';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faFileLines, faShareFromSquare } from '@fortawesome/free-solid-svg-icons';
-import { Usuario } from '../../interfaces/usuario';
 import { TramitesService } from '../../services/tramites.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { UsuariosService } from '../../services/usuarios.service';
-import { combineLatest } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-tramite-derivar',
@@ -32,18 +29,17 @@ import { combineLatest } from 'rxjs';
             <p class="text-neutral-700 font-semibold">{{ tramite!.areaActual }}</p>
           </div>
           <!-- Documentos -->
-          <div>
-            <h3 class="text-main text-sm font-semibold"><fa-icon [icon]="Document"></fa-icon> Documentos adjuntos ({{ tramite!.documentos.length }})</h3>
-            @if (tramite!.documentos.length > 0) {
-              <div class="border border-main rounded-xl p-2">
-                @for (document of tramite!.documentos; track $index) {
+          @if (tramite.documentos) {
+            <div>
+              <h3 class="text-main text-sm font-semibold"><fa-icon [icon]="Document"></fa-icon> Documentos adjuntos ({{ tramite.documentos.length }})</h3>
+              @if (tramite.documentos.length > 0) {
+                @for (document of tramite.documentos; track $index) {
                   <p class="text-neutral-500 text-sm truncate">- {{ document.nombre }}</p>
                 }
-              </div>
-            }
-          </div>
+              }
+            </div>
+          }
         </div>
-        <div class="bg-neutral-200 h-0.5 rounded-full mt-4 mb-1"></div>
         <!-- Área -->
         <form [formGroup]="form" class="mt-2">
           <p class="text-main font-semibold mb-3">Derivar a:</p>
@@ -54,7 +50,7 @@ import { combineLatest } from 'rxjs';
                 <select id="areaDestino" formControlName="areaDestino" placeholder="" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-pointer px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
                   <div class="rounded-lg overflow-hidden">
                     <option value="" disabled selected hidden></option>
-                    @for (area of getFilteredAreas(); track $index) {
+                    @for (area of filteredAreas(); track $index) {
                       <option [value]="area.id" class="hover:bg-main hover:text-red-700 h-20">{{ area.nombre }}</option>
                     }
                   </div>
@@ -84,16 +80,14 @@ import { combineLatest } from 'rxjs';
 })
 export class TramiteDerivarComponent {
   @Input() tramite!: Tramite;
-  @Input() currentArea!: string;
   @Output() close = new EventEmitter<void>();
 
   private fb = inject(FormBuilder);
   private tramitesService =inject(TramitesService);
-  private areasService = inject(AreaService);
-  private usuariosService = inject(UsuariosService);
-
-  areas:Area[] = [];
-  responsable!: string;
+  areas = inject(AreaService).areas;
+  filteredAreas = signal<Area[]>([]);
+  currentArea = inject(AuthService).usuarioLogged()!.areaId;
+  user = inject(AuthService).usuarioLogged()!.id;
 
   Document = faFileLines;
   Send = faShareFromSquare;
@@ -103,17 +97,12 @@ export class TramiteDerivarComponent {
     observaciones: [''],
   });
 
-  constructor() {
-    combineLatest([this.usuariosService.dataUsuario$, this.areasService.getAreas()]).pipe(takeUntilDestroyed()).subscribe({
-      next: ([user, areas]) => {
-        this.responsable = user!.id!;
-        this.areas = areas.filter(a => a.id !== this.currentArea);
-      }
-    });
+  ngOnInit() {
+    this.filteredAreas.set(this.getFilteredAreas())
   }
 
   getFilteredAreas(): Area[] {
-    return this.areas.filter(a => a.id !== this.currentArea);
+    return this.areas().filter(a => a.id !== this.currentArea);
   }
 
   derivar() {
@@ -132,7 +121,7 @@ export class TramiteDerivarComponent {
       areaDestino: null,
       fechaIngreso: new Date(),
       fechaSalida: null,
-      responsable: this.responsable,
+      responsable: this.user!,
       prioridad: 'Sin Determinar',
       estado: 'Pendiente',
       observaciones: this.form.value.observaciones || '',
