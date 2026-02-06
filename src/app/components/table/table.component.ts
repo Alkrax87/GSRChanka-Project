@@ -1,8 +1,10 @@
-import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output, SimpleChanges } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faAngleDown, faAngleUp, faCheck, faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faGear, faHourglassHalf, faMinus, faSearch, faXmark, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { Timestamp } from '@angular/fire/firestore';
+import { AreaService } from '../../services/area.service';
+import { UsuariosService } from '../../services/usuarios.service';
 
 @Component({
   selector: 'app-table',
@@ -107,6 +109,10 @@ import { Timestamp } from '@angular/fire/firestore';
                     }
                   } @else if (header.isDate) {
                     {{ getDateTransformed(getNestedValue(row, header.key)) }}
+                  } @else if (header.isArea) {
+                    {{ getAreaName(getNestedValue(row, header.key)) }}
+                  } @else if (header.isUsuario) {
+                    {{ getUsuarioName(getNestedValue(row, header.key)) }}
                   } @else {
                     {{ getNestedValue(row, header.key) || '-' }}
                   }
@@ -157,10 +163,13 @@ import { Timestamp } from '@angular/fire/firestore';
   styles: ``,
 })
 export class TableComponent {
-  @Input() tableConstructor: { key: string, label: string, status?: boolean, priority?: boolean, isDate?: boolean }[] = [];
+  @Input() tableConstructor: { key: string, label: string, status?: boolean, priority?: boolean, isDate?: boolean, isUsuario?: boolean, isArea?: boolean }[] = [];
   @Input() data: any[] = [];
   @Input() actions: { action: string; icon: IconDefinition; color: string; title: string }[] = [];
   @Output() action = new EventEmitter<{ action: string; item: any }>();
+
+  areas = inject(AreaService).areas;
+  usuarios = inject(UsuariosService).usuarios;
 
   searchTerm: string = '';
   sortColumn: string = '';
@@ -222,6 +231,16 @@ export class TableComponent {
   getDateTransformed(date: Timestamp) {
     const now = formatDate(date.toDate(), 'EEE dd MMM, HH:mm', 'es');
     return now.replace(/\b\w/g, l => l.toUpperCase());;
+  }
+
+  getAreaName(areaId: string) {
+    const area = this.areas().find(a => a.id === areaId);
+    return area ? area.nombre : '';
+  }
+
+  getUsuarioName(usuarioId: string) {
+    const usuario = this.usuarios().find(u => u.id === usuarioId);
+    return usuario ? usuario.nombres + ' ' + usuario.apellidos : '';
   }
 
   onSearch(event: Event) {
