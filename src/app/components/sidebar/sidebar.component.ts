@@ -2,7 +2,7 @@ import { NgClass } from '@angular/common';
 import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faAngleDown, faAngleRight, faArrowRightFromBracket, faBuilding, faClipboardList, faHome, faMagnifyingGlass, faUserShield, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faAngleDown, faAngleRight, faArrowRightFromBracket, faBuilding, faClipboardList, faFile, faHome, faMagnifyingGlass, faUserShield, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { LogOutComponent } from "../log-out/log-out.component";
 import { AuthService } from '../../services/auth.service';
 
@@ -213,6 +213,16 @@ export class SidebarComponent {
           icon: faBuilding,
           route: './areas'
         },
+      ]
+    },
+    {
+      sectionName: 'Documentos',
+      routes: [
+        {
+          name: 'Documentos',
+          icon: faFile,
+          route: './documentos'
+        }
       ]
     },
     {

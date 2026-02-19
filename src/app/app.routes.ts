@@ -10,6 +10,7 @@ import { UsuariosComponent } from './pages/portal/seguridad/usuarios/usuarios.co
 import { RolesComponent } from './pages/portal/seguridad/roles/roles.component';
 import { AreasComponent } from './pages/portal/areas/areas.component';
 import { TramitesComponent } from './pages/portal/tramites/tramites.component';
+import { DocumentosComponent } from './pages/portal/documentos/documentos.component';
 
 const redirectLoggedIn = () => redirectLoggedInTo(['portal/home']);
 const redirectUnauthorizedUser = () => redirectUnauthorizedTo(['login']);
@@ -41,6 +42,7 @@ export const routes: Routes = [
         ]
       },
       { path: 'areas', component:  AreasComponent},
+      { path: 'documentos', component:  DocumentosComponent},
       { path: 'tramites', component: TramitesComponent },
     ],
   },
