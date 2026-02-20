@@ -1,7 +1,7 @@
 import { Component, EventEmitter, inject, Input, Output, SimpleChanges } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faAngleDown, faAngleUp, faCheck, faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faGear, faHourglassHalf, faMinus, faSearch, faXmark, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faAngleDown, faAngleUp, faCheck, faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faFileLines, faGear, faHourglassHalf, faMinus, faSearch, faXmark, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { Timestamp } from '@angular/fire/firestore';
 import { AreaService } from '../../services/area.service';
 import { UsuariosService } from '../../services/usuarios.service';
@@ -113,6 +113,34 @@ import { UsuariosService } from '../../services/usuarios.service';
                     {{ getAreaName(getNestedValue(row, header.key)) }}
                   } @else if (header.isUsuario) {
                     {{ getUsuarioName(getNestedValue(row, header.key)) }}
+                  } @else if (header.isFormat) {
+                    @switch (getNestedValue(row, header.key).split('/')[1]) {
+                      @case ('pdf') {
+                        <span class="bg-[#E30809] text-white font-semibold text-sm rounded-full px-3 pb-0.5">PDF</span>
+                      }
+                      @case ('msword') {
+                        <span class="bg-[#205FC0] text-white font-semibold text-sm rounded-full px-3 pb-0.5">Word</span>
+                      }
+                      @case ('vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                        <span class="bg-[#205FC0] text-white font-semibold text-sm rounded-full px-3 pb-0.5">Word</span>
+                      }
+                      @case ('vnd.ms-excel') {
+                        <span class="bg-[#097640] text-white font-semibold text-sm rounded-full px-3 pb-0.5">Excel</span>
+                      }
+                      @case ('vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+                        <span class="bg-[#097640] text-white font-semibold text-sm rounded-full px-3 pb-0.5">Excel</span>
+                      }
+                      @case ('vnd.ms-powerpoint') {
+                        <span class="bg-[#F14B28] text-white font-semibold text-sm rounded-full px-3 pb-0.5">PowerPoint</span>
+                      }
+                      @case ('vnd.openxmlformats-officedocument.presentationml.presentation') {
+                        <span class="bg-[#F14B28] text-white font-semibold text-sm rounded-full px-3 pb-0.5">PowerPoint</span>
+                      }
+                    }
+                  } @else if (header.isSize) {
+                    <span class="bg-neutral-200 truncate rounded-full text-sm px-3 pb-0.5">
+                      <fa-icon class="text-neutral-600" [icon]="Document"></fa-icon>&nbsp; {{ (getNestedValue(row, header.key) / 1024 / 1024).toFixed(2) }} MB
+                    </span>
                   } @else {
                     {{ getNestedValue(row, header.key) || '-' }}
                   }
@@ -163,7 +191,7 @@ import { UsuariosService } from '../../services/usuarios.service';
   styles: ``,
 })
 export class TableComponent {
-  @Input() tableConstructor: { key: string, label: string, status?: boolean, priority?: boolean, isDate?: boolean, isUsuario?: boolean, isArea?: boolean }[] = [];
+  @Input() tableConstructor: { key: string, label: string, status?: boolean, priority?: boolean, isDate?: boolean, isUsuario?: boolean, isArea?: boolean, isSize?: boolean, isFormat?: boolean }[] = [];
   @Input() data: any[] = [];
   @Input() actions: { action: string; icon: IconDefinition; color: string; title: string }[] = [];
   @Output() action = new EventEmitter<{ action: string; item: any }>();
@@ -191,6 +219,9 @@ export class TableComponent {
   Gear = faGear;
   Check = faCheck;
   Xmark = faXmark;
+
+  // Size
+  Document = faFileLines;
 
   currentPage = 1;
   pageSize = 10;
