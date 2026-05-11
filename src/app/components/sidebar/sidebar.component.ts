@@ -178,6 +178,11 @@ export class SidebarComponent {
           icon: faMagnifyingGlass,
           route: './seguimiento'
         },
+        {
+          name: 'Inversion',
+          icon: faMagnifyingGlass,
+          route: './inversion'
+        },
       ]
     },
   ];

@@ -10,6 +10,7 @@ import { SeguimientoComponent } from './pages/public/seguimiento/seguimiento.com
 import { UsuariosComponent } from './pages/portal/seguridad/usuarios/usuarios.component';
 import { RolesComponent } from './pages/portal/seguridad/roles/roles.component';
 import { AreasComponent } from './pages/portal/areas/areas.component';
+import { InversionComponent } from './pages/portal/inversion/inversion.component';
 
 const redirectLoggedIn = () => redirectLoggedInTo(['portal/home']);
 const redirectUnauthorizedUser = () => redirectUnauthorizedTo(['login']);
@@ -42,6 +43,7 @@ export const routes: Routes = [
       },
       { path: 'areas', component:  AreasComponent},
       { path: 'seguimiento', component: HomeComponent },
+      { path: 'inversion', component: InversionComponent },
     ],
   },
   { path: '**', redirectTo: '' },
