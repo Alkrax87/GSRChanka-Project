@@ -213,6 +213,16 @@ export class SidebarComponent {
           icon: faBuilding,
           route: './areas'
         },
+        {
+          name: 'Seguimiento',
+          icon: faMagnifyingGlass,
+          route: './seguimiento'
+        },
+        {
+          name: 'Inversion',
+          icon: faMagnifyingGlass,
+          route: './inversion'
+        },
       ]
     },
     {
