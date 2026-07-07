@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { BreadcrumbComponent } from '../../../components/breadcrumb/breadcrumb.component';
 import { faDownload, faEdit, faFileLines, faPenToSquare, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { DocumentosService } from '../../../services/documentos.service';
@@ -7,17 +7,18 @@ import { Documento } from '../../../interfaces/documento';
 import { DocumentoModalComponent } from "../../../components/documento-modal/documento-modal.component";
 import { TableComponent } from "../../../components/table/table.component";
 import { ConfirmacionEliminarModalComponent } from "../../../components/confirmacion-eliminar-modal/confirmacion-eliminar-modal.component";
+import { DocumentoDownloadModalComponent } from "../../../components/documento-download-modal/documento-download-modal.component";
 
 @Component({
   selector: 'app-documentos',
-  imports: [FontAwesomeModule, BreadcrumbComponent, DocumentoModalComponent, TableComponent, ConfirmacionEliminarModalComponent],
+  imports: [FaIconComponent, BreadcrumbComponent, DocumentoModalComponent, TableComponent, ConfirmacionEliminarModalComponent, DocumentoDownloadModalComponent],
   template: `
     <div class="flex flex-col gap-4 p-10 select-none">
       <!-- Top -->
       <app-breadcrumb [path]="'Documentos'"></app-breadcrumb>
       <div class="flex items-center -mt-3 justify-between">
         <h1 class="text-main text-4xl font-bold">Documentos</h1>
-        <button (click)="onAdd()" type="button" class="bg-main hover:bg-main-hover text-white flex items-center gap-2 px-4 py-2 rounded-full">
+        <button (click)="onAdd()" type="button" class="btn bg-main hover:bg-main-hover text-white flex items-center gap-2">
           <fa-icon [icon]="Add"></fa-icon> Agregar
         </button>
       </div>
@@ -37,9 +38,16 @@ import { ConfirmacionEliminarModalComponent } from "../../../components/confirma
       ></app-documento-modal>
     }
 
+    @if (isDocumentoDownloadOpen()) {
+      <app-documento-download-modal
+        [documento]="selectedDocumento()!"
+        (close)="isDocumentoDownloadOpen.set(false)"
+      ></app-documento-download-modal>
+    }
+
     @if (isConfirmOpen()) {
       <app-confirmacion-eliminar-modal
-        [message]="'¿Eliminar el documento ' + selectedDocumento()!.codigo + '-' + selectedDocumento()!.archivo.nombreArchivo"
+        [message]="'¿Eliminar el documento ' + selectedDocumento()!.codigo + '-' + selectedDocumento()!.archivo.nombreArchivo + '?'"
         (confirm)="confirmDelete()"
         (cancel)="isConfirmOpen.set(false)"
       ></app-confirmacion-eliminar-modal>
@@ -54,11 +62,12 @@ export class DocumentosComponent {
   // Table
   tableHeaders = [
     { key: 'codigo', label: 'Código' },
+    { key: 'asunto', label: 'Asunto' },
     { key: 'archivo.nombreArchivo', label: 'Nombre' },
     { key: 'tipo', label: 'Tipo' },
     { key: 'archivo.formato', label: 'Formato', isFormat: true},
     { key: 'archivo.peso', label: 'Peso', isSize: true },
-    { key: 'archivo.fecha', label: 'Fecha', isDate: true },
+    { key: 'fechaModificacion', label: 'Fecha Modificación', isDate: true },
   ];
   tableActions = [
     { action: 'download', icon: faDownload, color: 'text-sky-600', title: 'Descargar'},
@@ -114,6 +123,7 @@ export class DocumentosComponent {
 
   confirmDelete() {
     if (this.selectedDocumento()?.id) {
+      this.documentosService.deleteFile(this.selectedDocumento()!.archivo.ruta);
       this.documentosService.deleteDocumento(this.selectedDocumento()!.id!);
     }
     this.isConfirmOpen.set(false);

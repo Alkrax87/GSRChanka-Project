@@ -1,43 +1,56 @@
-import { effect, inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable } from '@angular/core';
 import { addDoc, collection, collectionData, deleteDoc, doc, Firestore, query, updateDoc, where } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { Observable, of, switchMap } from 'rxjs';
 import { Documento } from '../interfaces/documento';
 import { AuthService } from './auth.service';
+import { deleteObject, getDownloadURL, ref, Storage, uploadBytes } from '@angular/fire/storage';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
 @Injectable({
   providedIn: 'root',
 })
 export class DocumentosService {
   private firestore = inject(Firestore);
+  private storage = inject(Storage);
   private authService = inject(AuthService);
-  documentosCollection = collection(this.firestore, 'documentos');
+  private documentosCollection = collection(this.firestore, 'documentos');
 
-  private _documentos = signal<Documento[]>([]);
-  public documentos = this._documentos.asReadonly();
+  private areaId = computed(() => this.authService.usuarioLogged()?.areaId || null);
 
-  constructor() {
-    this.getDocumentos();
+  private documentos$ = toObservable(this.areaId).pipe(
+    switchMap((areaId) => {
+      if (!areaId) return of([] as Documento[]);
+
+      const queryDocumentos = query(this.documentosCollection, where('adjuntadoPorArea', '==', areaId));
+      return collectionData(queryDocumentos, { idField: 'id' }) as Observable<Documento[]>;
+    })
+  )
+  public documentos = toSignal(this.documentos$, { initialValue: [] as Documento[] });
+
+  async uploadFile(File: File, areaId: string): Promise<{ nombreArchivo: string; ruta: string; url: string; formato: string; peso: number; fecha: Date }> {
+    const filePath = `documentos/${areaId}/${Date.now()}_${File.name}`;
+    const storageRef = ref(this.storage, filePath);
+
+    await uploadBytes(storageRef, File);
+
+    const url = await getDownloadURL(storageRef);
+
+    return {
+      nombreArchivo: File.name,
+      ruta: filePath,
+      url,
+      formato: File.type,
+      peso: File.size,
+      fecha: new Date(),
+    }
   }
 
-  private getDocumentos() {
-    effect(() => {
-      const user = this.authService.usuarioLogged();
-
-      if (!user?.areaId) {
-        this._documentos.set([]);
-        return;
-      }
-
-      const queryDocumentos = query(this.documentosCollection, where('adjuntadoPorArea', '==', user?.areaId));
-
-      (collectionData(queryDocumentos, { idField: 'id' }) as Observable<Documento[]>).subscribe({
-        next: (data) => this._documentos.set(data),
-        error: (err) => console.error('Error cargando documentos', err),
-      });
-    });
+  async deleteFile(filePath: string): Promise<void> {
+    const storageRef = ref(this.storage, filePath);
+    await deleteObject(storageRef);
   }
 
-  public addDocumento(documento: Documento) {
+  public addDocumento(documento: Partial<Documento>) {
     return addDoc(this.documentosCollection, documento);
   }
 
