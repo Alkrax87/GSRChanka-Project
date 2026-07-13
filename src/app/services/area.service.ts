@@ -1,5 +1,5 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { Firestore, collection, collectionData, addDoc, deleteDoc, doc, updateDoc } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, addDoc, deleteDoc, doc, updateDoc, getDoc } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Area } from '../interfaces/area';
@@ -23,6 +23,11 @@ export class AreaService {
       next: (data) => this._areas.set(data),
       error: (err) => console.error('Error cargando áreas', err),
     });
+  }
+
+  public getArea(id: string) {
+    const areaDoc = doc(this.firestore, `areas/${id}`);
+    return getDoc(areaDoc);
   }
 
   public addArea(area: Area) {
