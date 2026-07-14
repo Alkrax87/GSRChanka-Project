@@ -8,6 +8,7 @@ import { DocumentoModalComponent } from "../../../components/documento-modal/doc
 import { TableComponent } from "../../../components/table/table.component";
 import { ConfirmacionEliminarModalComponent } from "../../../components/confirmacion-eliminar-modal/confirmacion-eliminar-modal.component";
 import { DocumentoDownloadModalComponent } from "../../../components/documento-download-modal/documento-download-modal.component";
+import { AreaService } from '../../../services/area.service';
 
 @Component({
   selector: 'app-documentos',
@@ -57,6 +58,8 @@ import { DocumentoDownloadModalComponent } from "../../../components/documento-d
 })
 export class DocumentosComponent {
   private documentosService = inject(DocumentosService);
+  private areasService = inject(AreaService);
+
   documentos = this.documentosService.documentos;
 
   // Table
@@ -123,6 +126,7 @@ export class DocumentosComponent {
 
   confirmDelete() {
     if (this.selectedDocumento()?.id) {
+      this.areasService.changeTotal(this.selectedDocumento()!.adjuntadoPorArea, -1);
       this.documentosService.deleteFile(this.selectedDocumento()!.archivo.ruta);
       this.documentosService.deleteDocumento(this.selectedDocumento()!.id!);
     }

@@ -6,6 +6,7 @@ import { DocumentosService } from '../../services/documentos.service';
 import { AuthService } from '../../services/auth.service';
 import { faArrowUpFromBracket, faFileLines, faFloppyDisk, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { DecimalPipe } from '@angular/common';
+import { AreaService } from '../../services/area.service';
 
 @Component({
   selector: 'app-documento-modal',
@@ -16,13 +17,6 @@ import { DecimalPipe } from '@angular/common';
         <h2 class="card-title">{{ documento ? 'Editar Documento' : 'Agregar Documento' }}</h2>
         <form [formGroup]="form" (ngSubmit)="save()">
           <div class="flex flex-col gap-4">
-            <!-- Código -->
-            <div>
-              <label for="codigo" class="relative">
-                <input id="codigo" type="text" formControlName="codigo" placeholder="" class="input peer cursor-text">
-                <span class="input-base-label">Código</span>
-              </label>
-            </div>
             <!-- Asunto -->
             <div>
               <label for="asunto" class="relative">
@@ -110,11 +104,11 @@ export class DocumentoModalComponent {
 
   private fb = inject(FormBuilder);
   private documentosService = inject(DocumentosService);
+  private areasService = inject(AreaService);
   currentArea = inject(AuthService).usuarioLogged()!.areaId;
   isSaving = false;
 
   form = this.fb.group({
-    codigo: ['', Validators.required],
     asunto: ['', Validators.required],
     tipo: ['', Validators.required],
   });
@@ -129,7 +123,6 @@ export class DocumentoModalComponent {
   ngOnInit() {
     if (this.documento) {
       this.form.patchValue({
-        codigo: this.documento.codigo,
         asunto: this.documento.asunto,
         tipo: this.documento.tipo
       });
@@ -169,7 +162,7 @@ export class DocumentoModalComponent {
 
       if (this.documento) {
         const documentoEditado: Partial<Documento> = {
-          codigo: formValues.codigo!,
+          codigo: this.documento.codigo!,
           asunto: formValues.asunto!,
           tipo: formValues.tipo!,
           adjuntadoPorArea: this.currentArea,
@@ -179,16 +172,32 @@ export class DocumentoModalComponent {
 
         await this.documentosService.updateDocumento(this.documento.id!, documentoEditado);
       } else {
-        const documentoNuevo: Partial<Documento> = {
-          codigo: formValues.codigo!,
-          asunto: formValues.asunto!,
-          tipo: formValues.tipo!,
-          adjuntadoPorArea: this.currentArea,
-          fechaModificacion: new Date(),
-          archivo: archivoData!,
-        };
+        const area = await this.areasService.getArea(this.currentArea);
 
-        await this.documentosService.addDocumento(documentoNuevo);
+        if (area.exists()) {
+          console.log("Document data:", area.data());
+
+          const documentoNuevo: Partial<Documento> = {
+            codigo: (area.data()['documentos'].contador + 1).toString().padStart(4, '0') + '-' + new Date().getFullYear(),
+            asunto: formValues.asunto!,
+            tipo: formValues.tipo!,
+            adjuntadoPorArea: this.currentArea,
+            fechaModificacion: new Date(),
+            archivo: archivoData!,
+          };
+
+          await this.areasService.updateArea(this.currentArea, {
+            documentos: {
+              contador: area.data()['documentos'].contador + 1,
+              total: area.data()['documentos'].total + 1,
+            },
+          });
+
+          await this.documentosService.addDocumento(documentoNuevo);
+        } else {
+          alert('Hubo un error al guardar el documento y el archivo.');
+          return;
+        }
       }
 
       this.close.emit();

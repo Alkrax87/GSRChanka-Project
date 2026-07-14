@@ -43,4 +43,19 @@ export class AreaService {
     const areaDoc = doc(this.firestore, `areas/${id}`);
     return deleteDoc(areaDoc);
   }
+
+  public changeTotal(id: string, change: number) {
+    const areaDoc = doc(this.firestore, `areas/${id}`);
+
+    getDoc(areaDoc).then((doc) => {
+      if (doc.exists()) {
+        this.updateArea(id, {
+          documentos: {
+            contador: doc.data()['documentos'].contador,
+            total: doc.data()['documentos'].total + change,
+          },
+        });
+      }
+    });
+  }
 }
