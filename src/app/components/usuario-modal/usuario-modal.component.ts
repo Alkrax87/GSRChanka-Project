@@ -1,6 +1,6 @@
 import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faFloppyDisk, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { faFloppyDisk, faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { UsuariosService } from '../../services/usuarios.service';
@@ -9,84 +9,92 @@ import { AreaService } from '../../services/area.service';
 
 @Component({
   selector: 'app-usuario-modal',
-  imports: [ReactiveFormsModule, FontAwesomeModule],
+  imports: [ReactiveFormsModule, FaIconComponent],
   template: `
-    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-      <div class="bg-white rounded-xl p-6 w-96 shadow-xl">
-        <h2 class="text-xl font-semibold">
-          {{ usuario ? 'Editar Usuario' : 'Crear Usuario' }}
-        </h2>
-        <form [formGroup]="form" (ngSubmit)="save()">
-          <div class="flex flex-col gap-4 my-4">
-            <p class="font-semibold -mb-1.5">Datos Personales</p>
-            <div>
-              <label for="nombres" class="relative">
-                <input id="nombres" type="text" formControlName="nombres" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
-                <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Nombres</span>
-              </label>
-            </div>
-            <div>
-              <label for="apellidos" class="relative">
-                <input id="apellidos" type="text" formControlName="apellidos" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
-                <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Apellidos</span>
-              </label>
-            </div>
-            <div>
-              <label for="telefono" class="relative">
-                <input id="telefono" type="text" formControlName="telefono" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
-                <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Telefono</span>
-              </label>
-            </div>
-            <div>
-              <label for="correo" class="relative">
-                <input id="correo" type="email" formControlName="correo" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
-                <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Correo</span>
-              </label>
-            </div>
-            <div>
-              <label for="areaId" class="relative">
-                <select id="areaId" formControlName="areaId" placeholder="" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-pointer px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
-                  <option value="" disabled selected hidden></option>
-                  @for (area of areas(); track $index) {
-                    <option [value]="area.id">{{ area.nombre }}</option>
-                  }
-                </select>
-                <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Área</span>
-              </label>
-            </div>
-            @if (!usuario) {
-              <p class="font-semibold -mb-1.5">Credenciales</p>
-              <div>
-                <label for="usuario" class="relative">
-                  <input id="usuario" type="text" formControlName="usuario" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
-                  <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Usuario</span>
-                </label>
-              </div>
-              <div>
-                <label for="password" class="relative">
-                  <input id="password" type="password" formControlName="password" placeholder="" autocomplete="false" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-text px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
-                  <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Contraseña</span>
-                </label>
-              </div>
-            }
+    <div class="modal">
+      <div class="card-modal w-96">
+        <div class="flex justify-between">
+          <h2 class="card-title">{{ usuario ? 'Editar Usuario' : 'Crear Usuario' }}</h2>
+          <div class="flex items-center cursor-pointer hover:text-neutral-600" (click)="close.emit()">
+            <fa-icon [icon]="X"></fa-icon>
           </div>
-          <div class="flex justify-end gap-2">
-            <button type="button" (click)="close.emit()" class="bg-neutral-100 hover:bg-neutral-200/75 px-4 py-2 rounded-full">Cancelar</button>
-            @if (usuario) {
-              <button type="submit" [disabled]="form.invalid || isSaving" class="bg-main hover:bg-main-hover text-white flex items-center gap-2 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-full">
-                @if (isSaving) {
-                  <span class="animate-spin h-4 min-w-4 border-2 border-white border-t-transparent rounded-full"></span> Guardando...
-                } @else {
-                  <fa-icon [icon]="Save"></fa-icon> Guardando
+        </div>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form">
+          <p class="font-semibold text-neutral-700 -mb-1.5 text-sm">Datos Personales</p>
+          <!-- Nombres -->
+          <div>
+            <label for="nombres" class="relative">
+              <input id="nombres" type="text" formControlName="nombres" placeholder="" class="input peer cursor-text">
+              <span class="input-base-label">Nombres</span>
+            </label>
+          </div>
+          <!-- Apellidos -->
+          <div>
+            <label for="apellidos" class="relative">
+              <input id="apellidos" type="text" formControlName="apellidos" placeholder="" class="input peer cursor-text">
+              <span class="input-base-label">Apellidos</span>
+            </label>
+          </div>
+          <!-- Abreviatura -->
+          <div>
+            <label for="abreviatura" class="relative">
+              <input id="abreviatura" type="text" formControlName="abreviatura" placeholder="" class="input peer cursor-text">
+              <span class="input-base-label">Abreviatura</span>
+            </label>
+          </div>
+          <!-- Telefono -->
+          <div>
+            <label for="telefono" class="relative">
+              <input id="telefono" type="tel" inputmode="numeric" formControlName="telefono" placeholder="" class="input peer cursor-text">
+              <span class="input-base-label">Telefono</span>
+            </label>
+          </div>
+          <!-- Correo -->
+          <div>
+            <label for="correo" class="relative">
+              <input id="correo" type="email" formControlName="correo" placeholder="" class="input peer cursor-text">
+              <span class="input-base-label">Correo</span>
+            </label>
+          </div>
+          <!-- Area -->
+          <div>
+            <label for="areaId" class="relative">
+              <select id="areaId" formControlName="areaId" placeholder="" class="input peer cursor-pointer" required>
+                <option value="" disabled selected hidden></option>
+                @for (area of areas(); track $index) {
+                  <option class="text-sm" [value]="area.id">{{ area.nombre }}</option>
                 }
+              </select>
+              <span class="input-select-label">Área</span>
+            </label>
+          </div>
+          @if (!usuario) {
+            <p class="font-semibold text-neutral-700 -mb-1.5 text-sm">Credenciales</p>
+            <!-- Usuario -->
+            <div>
+              <label for="usuario" class="relative">
+                <input id="usuario" type="text" formControlName="usuario" placeholder="" class="input peer cursor-text">
+                <span class="input-base-label">Usuario</span>
+              </label>
+            </div>
+            <!-- Contraseña -->
+            <div>
+              <label for="password" class="relative">
+                <input id="password" type="password" formControlName="password" placeholder="" class="input peer cursor-text">
+                <span class="input-base-label">Contraseña</span>
+              </label>
+            </div>
+          }
+          <!-- Options -->
+          <div class="flex justify-end gap-2">
+            <button type="button" (click)="close.emit()" class="btn-cancel">Cancelar</button>
+            @if (usuario) {
+              <button type="submit" [disabled]="form.invalid || isSaving" class="btn-edit disabled:opacity-50 disabled:cursor-not-allowed">
+                @if (isSaving) { <span class="spin"></span>Guardando... } @else { <fa-icon [icon]="Save"></fa-icon>Guardar }
               </button>
             } @else {
-              <button type="submit" [disabled]="form.invalid || isSaving" class="bg-main hover:bg-main-hover text-white flex items-center gap-2 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-full">
-                @if (isSaving) {
-                  <span class="animate-spin h-4 min-w-4 border-2 border-white border-t-transparent rounded-full"></span> Agregando...
-                } @else {
-                  <fa-icon [icon]="Add"></fa-icon> Agregar
-                }
+              <button type="submit" [disabled]="form.invalid || isSaving" class="btn-add disabled:opacity-50 disabled:cursor-not-allowed">
+                @if (isSaving) { <span class="spin"></span> Agregando... } @else { <fa-icon [icon]="Add"></fa-icon>Agregar }
               </button>
             }
           </div>
@@ -109,16 +117,19 @@ export class UsuarioModalComponent {
   form = this.fb.group({
     nombres: ['', Validators.required],
     apellidos: ['', Validators.required],
+    abreviatura: ['', Validators.required],
     telefono: ['', [Validators.required, Validators.minLength(9), Validators.maxLength(9)]],
     correo: ['', [Validators.required, Validators.email]],
     areaId: ['', Validators.required],
     usuario: ['', Validators.required],
     password: [''],
+    contador: [0],
   });
 
   // Icons
   Add = faPlus;
   Save = faFloppyDisk;
+  X = faTimes;
 
   ngOnInit() {
     if (!this.usuario) {
@@ -128,32 +139,28 @@ export class UsuarioModalComponent {
     }
   }
 
-  async save() {
-    if (this.form.invalid) return;
+  async onSubmit() {
+    if (this.form.valid) {
+      this.isSaving = true;
+      const usuarioForm = this.form.value as Usuario;
 
-    this.isSaving = true;
-    const usuario = {
-      nombres: this.form.value.nombres!,
-      apellidos: this.form.value.apellidos!,
-      telefono: this.form.value.telefono!,
-      correo: this.form.value.correo!,
-      areaId: this.form.value.areaId!,
-      usuario: this.form.value.usuario!,
-    }
+      if (this.usuario?.id) {
+        this.usuariosService.updateUsuario(this.usuario.id, usuarioForm).then(() => this.close.emit());
+      } else {
+        const userCredentials: any = await this.authService.registerUser(this.form.value.usuario + '@gsrchanka.com', this.form.value.password!);
+        const newUser: Usuario = {
+          id: userCredentials.user.uid,
+          ...usuarioForm,
+        }
 
-    if (this.usuario?.id) {
-      this.usuariosService.updateUsuario(this.usuario.id, usuario).then(() => this.close.emit());
-    } else {
-      const userCredentials: any = await this.authService.registerUser(this.form.value.usuario + '@gsrchanka.com', this.form.value.password!);
-      const newUser: Usuario = {
-        id: userCredentials.user.uid,
-        ...usuario,
+        await this.usuariosService.addUsuario(newUser).then(() => {
+          this.isSaving = false;
+          this.close.emit();
+        });
       }
-
-      await this.usuariosService.addUsuario(newUser).then(() => {
-        this.isSaving = false;
-        this.close.emit();
-      });
+    } else {
+      alert('Por favor, complete todos los campos obligatorios.');
+      return;
     }
   }
 }
