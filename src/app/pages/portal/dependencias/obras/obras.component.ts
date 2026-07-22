@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { BreadcrumbComponent } from "../../../../components/breadcrumb/breadcrumb.component";
 import { faBuilding, faEdit, faEye, faFileLines, faPlus, faTrash, faUsers } from '@fortawesome/free-solid-svg-icons';
@@ -94,11 +94,7 @@ import { TableComponent } from "../../../../components/table/table.component";
 })
 export class ObrasComponent {
   private dependenciasService = inject(DependenciasService);
-  dependencias = this.dependenciasService.dependencias;
-
-  constructor() {
-    this.dependenciasService.getDependencias(false);
-  }
+  dependencias = computed(() => this.dependenciasService.dependencias().filter(dependencia => dependencia.esArea === false));
 
   // Table
   tableHeaders = [

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { BreadcrumbComponent } from "../../../../components/breadcrumb/breadcrumb.component";
 import { faBuilding, faEye, faFileLines, faPenToSquare, faPlus, faTrash, faUsers } from '@fortawesome/free-solid-svg-icons';
@@ -124,11 +124,7 @@ import { DependenciaShowModalComponent } from "../../../../components/dependenci
 })
 export class AreasComponent {
   private dependenciasService = inject(DependenciasService);
-  dependencias = this.dependenciasService.dependencias;
-
-  constructor() {
-    this.dependenciasService.getDependencias(true);
-  }
+  dependencias = computed(() => this.dependenciasService.dependencias().filter(dependencia => dependencia.esArea === true));
 
   // Modals
   isDependenciaModalOpen = signal(false);
