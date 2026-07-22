@@ -1,8 +1,9 @@
 import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { Usuario } from '../../interfaces/usuario';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faBuilding, faEnvelope, faListOl, faPhone, faTag, faTimes, faUser } from '@fortawesome/free-solid-svg-icons';
-import { AreaService } from '../../services/area.service';
+import { faBuilding, faEnvelope, faHammer, faListOl, faPhone, faTag, faTimes, faUser } from '@fortawesome/free-solid-svg-icons';
+import { DependenciasService } from '../../services/dependencias.service';
+import { Dependencia } from '../../interfaces/dependencia';
 
 @Component({
   selector: 'app-usuario-profile',
@@ -25,7 +26,13 @@ import { AreaService } from '../../services/area.service';
           <h2 class="text-xl font-semibold">{{ usuario.nombres }} {{ usuario.apellidos }}</h2>
           <p class="font-semibold text-sm text-main -mt-1">{{ '@' + usuario.usuario }}</p>
           <div class="text-neutral-500 text-sm flex flex-col gap-1 mt-1">
-            <p><fa-icon [icon]="Area"></fa-icon> {{ mapArea(usuario.areaId) }}</p>
+            @if (mapDependencia(usuario.dependenciaId)?.esArea) {
+              <p><fa-icon [icon]="Area"></fa-icon> {{ mapDependencia(usuario.dependenciaId)?.nombre }}</p>
+            } @else if (mapDependencia(usuario.dependenciaId)?.esArea === false) {
+              <p><fa-icon [icon]="Obra"></fa-icon> {{ mapDependencia(usuario.dependenciaId)?.nombre }}</p>
+            } @else {
+              <p>Sin Asignar</p>
+            }
             <p><fa-icon [icon]="Phone"></fa-icon> {{ usuario.telefono }}</p>
             <p><fa-icon [icon]="Mail"></fa-icon> {{ usuario.correo }}</p>
           </div>
@@ -57,17 +64,18 @@ export class UsuarioProfileComponent {
   @Input() usuario!: Usuario;
   @Output() close = new EventEmitter<void>();
 
-  private areas = inject(AreaService).areas;
+  private dependencias = inject(DependenciasService).dependencias;
 
   User = faUser;
   Area = faBuilding;
+  Obra = faHammer;
   Phone = faPhone;
   Mail = faEnvelope;
   Counter = faListOl;
   Tag = faTag;
   X = faTimes;
 
-  mapArea(id: string) {
-    return this.areas().find(area => area.id === id)?.nombre;
+  mapDependencia(dependenciaId: string): Dependencia | undefined {
+    return this.dependencias().find(dependencia => dependencia.id === dependenciaId);
   }
 }

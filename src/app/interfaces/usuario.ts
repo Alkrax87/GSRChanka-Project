@@ -5,7 +5,7 @@ export interface Usuario {
   abreviatura: string;
   telefono: string;
   correo: string;
-  areaId: string;
+  dependenciaId: string;
   usuario: string;
   contador: number;
 }

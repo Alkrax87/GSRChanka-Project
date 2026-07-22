@@ -5,7 +5,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { UsuariosService } from '../../services/usuarios.service';
 import { Usuario } from '../../interfaces/usuario';
-import { AreaService } from '../../services/area.service';
+import { DependenciasService } from '../../services/dependencias.service';
 
 @Component({
   selector: 'app-usuario-modal',
@@ -14,7 +14,7 @@ import { AreaService } from '../../services/area.service';
     <div class="modal">
       <div class="card-modal w-96">
         <div class="flex justify-between">
-          <h2 class="card-title">{{ usuario ? 'Editar Usuario' : 'Crear Usuario' }}</h2>
+          <h2 class="card-title">{{ usuario ? 'Editar Usuario' : 'Nuevo Usuario' }}</h2>
           <div class="flex items-center cursor-pointer hover:text-neutral-600" (click)="close.emit()">
             <fa-icon [icon]="X"></fa-icon>
           </div>
@@ -56,16 +56,16 @@ import { AreaService } from '../../services/area.service';
               <span class="input-base-label">Correo</span>
             </label>
           </div>
-          <!-- Area -->
+          <!-- Dependencia -->
           <div>
-            <label for="areaId" class="relative">
-              <select id="areaId" formControlName="areaId" placeholder="" class="input peer cursor-pointer" required>
+            <label for="dependenciaId" class="relative">
+              <select id="dependenciaId" formControlName="dependenciaId" placeholder="" class="input peer cursor-pointer" required>
                 <option value="" disabled selected hidden></option>
-                @for (area of areas(); track $index) {
-                  <option class="text-sm" [value]="area.id">{{ area.nombre }}</option>
+                @for (dependencia of dependencias(); track $index) {
+                  <option class="text-sm" [value]="dependencia.id">{{ dependencia.nombre }}</option>
                 }
               </select>
-              <span class="input-select-label">Área</span>
+              <span class="input-select-label">Dependencia</span>
             </label>
           </div>
           @if (!usuario) {
@@ -111,7 +111,7 @@ export class UsuarioModalComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private usuariosService = inject(UsuariosService);
-  areas = inject(AreaService).areas;
+  dependencias = inject(DependenciasService).dependencias;
   isSaving = false;
 
   form = this.fb.group({
@@ -120,7 +120,7 @@ export class UsuarioModalComponent {
     abreviatura: ['', Validators.required],
     telefono: ['', [Validators.required, Validators.minLength(9), Validators.maxLength(9)]],
     correo: ['', [Validators.required, Validators.email]],
-    areaId: ['', Validators.required],
+    dependenciaId: ['', Validators.required],
     usuario: ['', Validators.required],
     password: [''],
     contador: [0],

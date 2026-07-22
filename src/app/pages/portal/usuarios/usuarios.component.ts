@@ -19,7 +19,7 @@ import { Usuario } from '../../../interfaces/usuario';
       <div class="flex items-center justify-between">
         <h1 class="text-main text-4xl font-bold">Usuarios</h1>
         <button (click)="onAdd()" type="button" class="btn-add">
-          <fa-icon [icon]="Add"></fa-icon>Agregar
+          <fa-icon [icon]="Add"></fa-icon>Nuevo Usuario
         </button>
       </div>
       <!-- Table -->
@@ -64,7 +64,7 @@ export class UsuariosComponent {
     { key: 'nombres', label: 'Nombres' },
     { key: 'apellidos', label: 'Apellidos' },
     { key: 'abreviatura', label: 'Abreviatura' },
-    { key: 'areaId', label: 'Area', isArea: true },
+    { key: 'dependenciaId', label: 'Dependencia', isDependencia: true },
     { key: 'usuario', label: 'Usuario' },
     { key: 'telefono', label: 'Teléfono' },
     { key: 'correo', label: 'Correo' },
