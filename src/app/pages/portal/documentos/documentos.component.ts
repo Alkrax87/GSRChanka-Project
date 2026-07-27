@@ -8,28 +8,31 @@ import { DocumentoModalComponent } from "../../../components/documento-modal/doc
 import { TableComponent } from "../../../components/table/table.component";
 import { ConfirmacionEliminarModalComponent } from "../../../components/confirmacion-eliminar-modal/confirmacion-eliminar-modal.component";
 import { DocumentoDownloadModalComponent } from "../../../components/documento-download-modal/documento-download-modal.component";
-import { AreaService } from '../../../services/area.service';
+import { DependenciasService } from '../../../services/dependencias.service';
 
 @Component({
   selector: 'app-documentos',
   imports: [FaIconComponent, BreadcrumbComponent, DocumentoModalComponent, TableComponent, ConfirmacionEliminarModalComponent, DocumentoDownloadModalComponent],
   template: `
-    <div class="flex flex-col gap-4 p-10 select-none">
+    <div class="flex flex-col gap-4 p-8 select-none">
       <!-- Top -->
-      <app-breadcrumb [path]="'Documentos'"></app-breadcrumb>
-      <div class="flex items-center -mt-3 justify-between">
+      <app-breadcrumb [path]="'Documentos'" class="-mb-2"></app-breadcrumb>
+      <div class="flex items-center justify-between">
         <h1 class="text-main text-4xl font-bold">Documentos</h1>
-        <button (click)="onAdd()" type="button" class="btn bg-main hover:bg-main-hover text-white flex items-center gap-2">
-          <fa-icon [icon]="Add"></fa-icon> Agregar
+        <button (click)="onAdd()" type="button" class="btn-add">
+          <fa-icon [icon]="Add"></fa-icon> Nuevo Documento
         </button>
       </div>
-      <!-- Table -->
-      <app-table
-        [tableConstructor]="tableHeaders"
-        [data]="documentos()"
-        [actions]="tableActions"
-        (action)="handleAction($event)"
-      ></app-table>
+      <!-- Content -->
+      <div class="card">
+        <!-- Table -->
+        <app-table
+          [tableConstructor]="tableHeaders"
+          [data]="documentos()"
+          [actions]="tableActions"
+          (action)="handleAction($event)"
+        ></app-table>
+      </div>
     </div>
 
     @if (isDocumentoModalOpen()) {
@@ -58,13 +61,13 @@ import { AreaService } from '../../../services/area.service';
 })
 export class DocumentosComponent {
   private documentosService = inject(DocumentosService);
-  private areasService = inject(AreaService);
-
+  private dependenciasService = inject(DependenciasService);
   documentos = this.documentosService.documentos;
 
   // Table
   tableHeaders = [
     { key: 'codigo', label: 'Código' },
+    { key: 'propietario.persona', label: 'Dueño' },
     { key: 'asunto', label: 'Asunto' },
     { key: 'archivo.nombreArchivo', label: 'Nombre' },
     { key: 'tipo', label: 'Tipo' },
@@ -73,9 +76,9 @@ export class DocumentosComponent {
     { key: 'fechaModificacion', label: 'Fecha Modificación', isDate: true },
   ];
   tableActions = [
-    { action: 'download', icon: faDownload, color: 'text-sky-600', title: 'Descargar'},
-    { action: 'edit', icon: faEdit, color: 'text-amber-400', title: 'Editar'},
-    { action: 'delete', icon: faTrash, color: 'text-red-600', title: 'Eliminar'},
+    { action: 'download', icon: faDownload, color: 'text-sky-600', title: 'Descargar' },
+    { action: 'edit', icon: faEdit, color: 'text-amber-400', title: 'Editar', ownership: true },
+    { action: 'delete', icon: faTrash, color: 'text-red-600', title: 'Eliminar', ownership: true },
   ];
 
   // Modals
@@ -126,7 +129,7 @@ export class DocumentosComponent {
 
   confirmDelete() {
     if (this.selectedDocumento()?.id) {
-      this.areasService.changeTotal(this.selectedDocumento()!.adjuntadoPorArea, -1);
+      this.dependenciasService.changeTotal(this.selectedDocumento()!.adjuntadoPorDependencia, -1);
       this.documentosService.deleteFile(this.selectedDocumento()!.archivo.ruta);
       this.documentosService.deleteDocumento(this.selectedDocumento()!.id!);
     }

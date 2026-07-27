@@ -15,13 +15,13 @@ export class DocumentosService {
   private authService = inject(AuthService);
   private documentosCollection = collection(this.firestore, 'documentos');
 
-  private areaId = computed(() => this.authService.usuarioLogged()?.areaId || null);
+  private dependenciaId = computed(() => this.authService.usuarioLogged()?.dependenciaId || null);
 
-  private documentos$ = toObservable(this.areaId).pipe(
-    switchMap((areaId) => {
-      if (!areaId) return of([] as Documento[]);
+  private documentos$ = toObservable(this.dependenciaId).pipe(
+    switchMap((dependenciaId) => {
+      if (!dependenciaId) return of([] as Documento[]);
 
-      const queryDocumentos = query(this.documentosCollection, where('adjuntadoPorArea', '==', areaId));
+      const queryDocumentos = query(this.documentosCollection, where('adjuntadoPorDependencia', '==', dependenciaId));
       return collectionData(queryDocumentos, { idField: 'id' }) as Observable<Documento[]>;
     })
   )

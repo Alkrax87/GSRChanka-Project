@@ -3,7 +3,11 @@ export interface Documento {
   codigo: string;
   asunto: string;
   tipo: string;
-  adjuntadoPorArea: string;
+  adjuntadoPorDependencia: string;
+  propietario: {
+    persona: string;
+    ownerId: string;
+  };
   fechaModificacion: Date;
   archivo: {
     nombreArchivo: string;
