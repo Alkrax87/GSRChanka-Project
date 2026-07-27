@@ -6,7 +6,6 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { TableComponent } from '../../../components/table/table.component';
 import { TramiteModalComponent } from "../../../components/tramite-modal/tramite-modal.component";
 import { ConfirmacionEliminarModalComponent } from "../../../components/confirmacion-eliminar-modal/confirmacion-eliminar-modal.component";
-import { Area } from '../../../interfaces/area';
 import { FormsModule } from '@angular/forms';
 import { TramiteAdjuntarComponent } from "../../../components/tramite-adjuntar/tramite-adjuntar.component";
 import { TramiteDerivarComponent } from "../../../components/tramite-derivar/tramite-derivar.component";
@@ -52,7 +51,7 @@ import { AuthService } from '../../../services/auth.service';
     @if (isAdjuntarOpen()) {
       <app-tramite-adjuntar
         [tramite]="selectedTramite()"
-        [currentArea]="usuario()!.areaId"
+        [currentArea]="usuario()!.dependenciaId"
         (close)="isAdjuntarOpen.set(false);"
       ></app-tramite-adjuntar>
     }
@@ -90,7 +89,7 @@ export class TramitesComponent {
   ]
 
   // Signals
-  areas = signal<Area[]>([]);
+  // areas = signal<Area[]>([]);
   isTramiteModalOpen = signal(false);
   isTramiteShowOpen = signal(false);
   isConfirmOpen = signal(false);

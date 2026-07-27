@@ -76,7 +76,7 @@ export class TramiteModalComponent {
 
   private fb = inject(FormBuilder);
   private tramitesService = inject(TramitesService);
-  currentArea = inject(AuthService).usuarioLogged()!.areaId;
+  currentArea = inject(AuthService).usuarioLogged()!.dependenciaId;
 
   form = this.fb.group({
     asunto: ['', Validators.required],

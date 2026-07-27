@@ -1,7 +1,5 @@
 import { Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
 import { Tramite } from '../../interfaces/tramite';
-import { AreaService } from '../../services/area.service';
-import { Area } from '../../interfaces/area';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faFileLines, faShareFromSquare } from '@fortawesome/free-solid-svg-icons';
@@ -50,9 +48,9 @@ import { AuthService } from '../../services/auth.service';
                 <select id="areaDestino" formControlName="areaDestino" placeholder="" class="bg-white text-neutral-700 border focus:border-main focus:text-main h-12 cursor-pointer px-5 py-2 peer w-full rounded-full shadow-sm duration-100 outline-none">
                   <div class="rounded-lg overflow-hidden">
                     <option value="" disabled selected hidden></option>
-                    @for (area of filteredAreas(); track $index) {
+                    <!-- @for (area of filteredAreas(); track $index) {
                       <option [value]="area.id" class="hover:bg-main hover:text-red-700 h-20">{{ area.nombre }}</option>
-                    }
+                    } -->
                   </div>
                 </select>
                 <span class="bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center -translate-y-6 absolute inset-y-0 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-focus:-translate-y-6">Área Destino</span>
@@ -84,9 +82,9 @@ export class TramiteDerivarComponent {
 
   private fb = inject(FormBuilder);
   private tramitesService =inject(TramitesService);
-  areas = inject(AreaService).areas;
-  filteredAreas = signal<Area[]>([]);
-  currentArea = inject(AuthService).usuarioLogged()!.areaId;
+  // areas = inject(AreaService).areas;
+  // filteredAreas = signal<Area[]>([]);
+  currentArea = inject(AuthService).usuarioLogged()!.dependenciaId;
   user = inject(AuthService).usuarioLogged()!.id;
 
   Document = faFileLines;
@@ -98,12 +96,12 @@ export class TramiteDerivarComponent {
   });
 
   ngOnInit() {
-    this.filteredAreas.set(this.getFilteredAreas())
+    // this.filteredAreas.set(this.getFilteredAreas())
   }
 
-  getFilteredAreas(): Area[] {
-    return this.areas().filter(a => a.id !== this.currentArea);
-  }
+  // getFilteredAreas(): Area[] {
+  //   return this.areas().filter(a => a.id !== this.currentArea);
+  // }
 
   derivar() {
     if (this.form.invalid || !this.tramite) return;
