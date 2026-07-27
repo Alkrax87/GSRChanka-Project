@@ -1,5 +1,5 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { Firestore, collection, collectionData, deleteDoc, doc, updateDoc, setDoc } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, deleteDoc, doc, updateDoc, setDoc, getDoc } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Usuario } from '../interfaces/usuario';
@@ -25,6 +25,11 @@ export class UsuariosService {
     });
   }
 
+  public getUsuario(id: string) {
+    const usuarioDoc = doc(this.firestore, `usuarios/${id}`);
+    return getDoc(usuarioDoc);
+  }
+
   public addUsuario(usuario: Usuario) {
     const usuarioDoc = doc(this.usuariosCollection, usuario.id);
     return setDoc(usuarioDoc, usuario);
@@ -38,5 +43,14 @@ export class UsuariosService {
   public deleteUsuario(id: string) {
     const usuarioDoc = doc(this.firestore, `usuarios/${id}`);
     return deleteDoc(usuarioDoc);
+  }
+
+  public changeCounter(id: string, change: number) {
+    const usuarioDoc = doc(this.firestore, `usuarios/${id}`);
+    getDoc(usuarioDoc).then((doc) => {
+      if (doc.exists()) {
+        this.updateUsuario(id, { contador: doc.data()['contador'] + change });
+      }
+    });
   }
 }
