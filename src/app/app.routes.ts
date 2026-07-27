@@ -2,16 +2,14 @@ import { Routes } from '@angular/router';
 import { AuthGuard, redirectLoggedInTo, redirectUnauthorizedTo } from '@angular/fire/auth-guard';
 import { MainComponent } from './pages/portal/main/main.component';
 import { HomeComponent } from './pages/portal/home/home.component';
-import { SeguridadComponent } from './pages/portal/seguridad/seguridad.component';
 import { LandingComponent } from './pages/public/landing/landing.component';
 import { LoginComponent } from './pages/public/login/login.component';
 import { SeguimientoComponent } from './pages/public/seguimiento/seguimiento.component';
-import { UsuariosComponent } from './pages/portal/seguridad/usuarios/usuarios.component';
-import { RolesComponent } from './pages/portal/seguridad/roles/roles.component';
-import { AreasComponent } from './pages/portal/areas/areas.component';
+import { UsuariosComponent } from './pages/portal/usuarios/usuarios.component';
 import { TramitesComponent } from './pages/portal/tramites/tramites.component';
 import { DocumentosComponent } from './pages/portal/documentos/documentos.component';
-import { InversionComponent } from './pages/portal/inversion/inversion.component';
+import { AreasComponent } from './pages/portal/dependencias/areas/areas.component';
+import { ObrasComponent } from './pages/portal/dependencias/obras/obras.component';
 
 const redirectLoggedIn = () => redirectLoggedInTo(['portal/home']);
 const redirectUnauthorizedUser = () => redirectUnauthorizedTo(['login']);
@@ -33,20 +31,14 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'home', pathMatch: 'full' },
       { path: 'home', component: HomeComponent },
-      { path: 'seguimiento', component: HomeComponent },
-      {
-        path: 'seguridad',
-        component: SeguridadComponent,
-        children: [
-          { path: 'usuarios', component: UsuariosComponent },
-          { path: 'roles', component: RolesComponent },
-        ]
-      },
-      { path: 'areas', component:  AreasComponent},
+      // Admin
+      { path: 'usuarios', component:  UsuariosComponent},
+      { path: 'areas', component:  AreasComponent },
+      { path: 'obras', component:  ObrasComponent },
+      // User
       { path: 'documentos', component:  DocumentosComponent},
       { path: 'tramites', component: TramitesComponent },
       { path: 'seguimiento', component: HomeComponent },
-      { path: 'inversion', component: InversionComponent },
     ],
   },
   { path: '**', redirectTo: '' },

@@ -61,6 +61,7 @@ export class UsuariosComponent {
 
   // Table
   tableHeaders = [
+    { key: 'id', label: 'ID', isId: true },
     { key: 'nombres', label: 'Nombres' },
     { key: 'apellidos', label: 'Apellidos' },
     { key: 'abreviatura', label: 'Abreviatura' },

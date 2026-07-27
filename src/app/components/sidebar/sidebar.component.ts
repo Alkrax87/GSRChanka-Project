@@ -2,7 +2,7 @@ import { NgClass } from '@angular/common';
 import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faAngleDown, faAngleRight, faArrowRightFromBracket, faBuilding, faClipboardList, faFileLines, faHome, faMagnifyingGlass, faUserShield, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faAngleDown, faAngleRight, faArrowRightFromBracket, faBuilding, faClipboardList, faFileLines, faHammer, faHome, faMagnifyingGlass, faUserShield, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { LogOutComponent } from "../log-out/log-out.component";
 import { AuthService } from '../../services/auth.service';
 
@@ -28,7 +28,7 @@ import { AuthService } from '../../services/auth.service';
             [ngClass]="{ 'w-9 h-9': isOpen, 'w-8 h-8': !isOpen }"
           >
           @if (isOpen) {
-            <p class="text-xl"><span class="font-bold">GSR</span>Chanka</p>
+            <p class="text-xl"><span class="font-bold text-main">GSR</span>Chanka</p>
           }
         </div>
       </div>
@@ -182,69 +182,30 @@ export class SidebarComponent {
     {
       sectionName: 'General',
       routes: [
-        {
-          name: 'Inicio',
-          icon: faHome,
-          route: './home',
-        },
-        {
-          name: 'Seguimiento',
-          icon: faMagnifyingGlass,
-          route: './seguimiento'
-        },
+        { name: 'Inicio', icon: faHome, route: './home' },
       ]
     },
     {
       sectionName: 'Admin',
       routes: [
-        {
-          multiRoutes: true,
-          name: 'Seguridad',
-          icon: faUserShield,
-          route: './seguridad',
-          subroutes: [
-            { name: 'Usuarios', route: './seguridad/usuarios' },
-            { name: 'Roles', route: './seguridad/roles' },
-          ],
-          subRoutesStatus: false,
-        },
-        {
-          name: 'Áreas',
-          icon: faBuilding,
-          route: './areas'
-        },
-        {
-          name: 'Seguimiento',
-          icon: faMagnifyingGlass,
-          route: './seguimiento'
-        },
-        {
-          name: 'Inversion',
-          icon: faMagnifyingGlass,
-          route: './inversion'
-        },
+        { name: 'Usuarios', icon: faUserShield, route: './usuarios' },
+        { name: 'Áreas', icon: faBuilding, route: './areas' },
+        { name: 'Obras', icon: faHammer, route: './obras' },
       ]
     },
     {
-      sectionName: 'Documentos',
+      sectionName: 'Área',
       routes: [
-        {
-          name: 'Documentos',
-          icon: faFileLines,
-          route: './documentos'
-        }
+        { name: 'Documentos', icon: faFileLines, route: './documentos' },
+        { name: 'Trámites', icon: faClipboardList, route: './tramites' }
       ]
     },
     {
-      sectionName: 'Trámites',
+      sectionName: 'Seguimiento',
       routes: [
-        {
-          name: 'Trámites',
-          icon: faClipboardList,
-          route: './tramites'
-        }
+        { name: 'Seguimiento', icon: faMagnifyingGlass, route: './seguimiento' },
       ]
-    }
+    },
   ];
 
   resetSubRoutesStatus() {

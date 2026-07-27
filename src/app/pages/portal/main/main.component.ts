@@ -8,7 +8,7 @@ import { RouterOutlet } from '@angular/router';
   selector: 'app-main',
   imports: [CommonModule, SidebarComponent, TopbarComponent, RouterOutlet],
   template: `
-    <div class="flex h-screen">
+    <div class="flex h-screen bg-background">
       <app-sidebar (sidebarStatus)="changeSideBarStatus($event)"></app-sidebar>
       <div class="w-full duration-300" [ngClass]="{ 'pl-64': sidebarIsOpen, 'pl-12': !sidebarIsOpen }">
         <app-topbar></app-topbar>

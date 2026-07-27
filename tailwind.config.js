@@ -8,8 +8,12 @@ module.exports = {
       colors: {
         'main': '#42C4CA',
         'main-hover': '#46ccd3',
-        'background': '#F0F4F8',
+        'background': '#F9FBFD',
+        'cloud': '#F8F8F8',
         'font': '#333333',
+      },
+      fontSize: {
+        'xxs': 10,
       }
     },
   },

@@ -5,14 +5,44 @@
   .modal {
     @apply fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50;
   }
-  .card {
+  .card-modal {
     @apply bg-white rounded-3xl p-6 shadow-xl flex flex-col gap-4;
   }
   .card-title {
-    @apply text-neutral-700 text-lg font-semibold;
+    @apply text-neutral-800 text-lg font-semibold;
+  }
+  .card {
+    @apply bg-white border-[3px] border-cloud rounded-3xl p-4;
+  }
+  .card-item {
+    @apply bg-white border-2 border-cloud rounded-3xl p-4;
+  }
+  .form {
+    @apply flex flex-col gap-4;
   }
   .btn {
-    @apply px-6 py-2 rounded-full;
+    @apply px-6 py-2 rounded-2xl shadow-md;
+  }
+  .btn-cancel {
+    @apply btn bg-neutral-100 hover:bg-neutral-200/75 flex items-center gap-2;
+  }
+  .btn-main {
+    @apply btn bg-main hover:bg-main/80 text-white flex items-center gap-2;
+  }
+  .btn-add {
+    @apply btn bg-green-600 hover:bg-green-600/80 text-white flex items-center gap-2;
+  }
+  .btn-edit {
+    @apply btn bg-yellow-500 hover:bg-yellow-500/80 text-white flex items-center gap-2;
+  }
+  .btn-delete {
+    @apply btn bg-red-600 hover:bg-red-600/80 text-white flex items-center gap-2;
+  }
+  .badge {
+    @apply text-xs px-4 py-1 flex items-center w-fit gap-1 font-semibold rounded-full shadow-md;
+  }
+  .spin {
+    @apply animate-spin h-5 min-w-5 border-2 border-white border-t-transparent rounded-full my-auto;
   }
   .input {
     @apply bg-white text-neutral-700 border focus:border-main focus:text-main h-10 px-5 w-full rounded-full shadow-sm outline-none;
@@ -23,4 +53,11 @@
   .input-select-label {
     @apply bg-white text-neutral-400 peer-focus:text-main cursor-text flex items-center h-fit -translate-y-5 absolute inset-y-0.5 start-3 px-2 text-xs font-semibold transition-transform peer-placeholder-shown:translate-y-0 peer-invalid:translate-y-0 peer-focus:-translate-y-5;
   }
+}
+
+body {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
 }

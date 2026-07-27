@@ -6,7 +6,7 @@ import { faAngleRight, faHouse } from '@fortawesome/free-solid-svg-icons';
   selector: 'app-breadcrumb',
   imports: [FontAwesomeModule],
   template: `
-    <div class="text-main flex gap-2 font-semibold text-sm">
+    <div class="text-neutral-400 flex gap-1 items-center text-xs">
       <fa-icon [icon]="Home"></fa-icon>
       <fa-icon [icon]="Arrow"></fa-icon>
       <span>{{ path }}</span>

@@ -1,10 +1,11 @@
 import { Component, EventEmitter, inject, Input, Output, SimpleChanges } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faAngleDown, faAngleUp, faCheck, faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faFileLines, faGear, faHourglassHalf, faMinus, faSearch, faXmark, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faAngleDown, faAngleUp, faBuilding, faCheck, faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faFileLines, faGear, faHammer, faHourglassHalf, faMinus, faSearch, faXmark, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { Timestamp } from '@angular/fire/firestore';
-import { AreaService } from '../../services/area.service';
 import { UsuariosService } from '../../services/usuarios.service';
+import { DependenciasService } from '../../services/dependencias.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-table',
@@ -13,14 +14,14 @@ import { UsuariosService } from '../../services/usuarios.service';
     <!-- Seach and Selector -->
     <div class="flex justify-between">
       <!-- Search -->
-      <div class="relative w-full md:w-1/2 lg:w-1/3">
-        <fa-icon [icon]="Search" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"></fa-icon>
+      <div class="relative w-full md:w-1/2 lg:w-1/3 group">
+        <fa-icon [icon]="Search" class="absolute left-3 top-1/2 group-hover:text-main/50 -translate-y-1/2 text-neutral-400"></fa-icon>
         <input
           type="text"
           placeholder="Buscar..."
           [value]="searchTerm"
           (input)="onSearch($event)"
-          class="w-full rounded-full shadow-md pl-10 pr-4 py-2 outline-none ring-[3px] ring-transparent focus:ring-main/50 focus:text-main"
+          class="group-hover:border-main/50 border-2 w-full rounded-2xl pl-10 pr-4 py-2 outline-none focus:border-main/50 focus:text-main"
         >
       </div>
       <!-- Items -->
@@ -29,22 +30,24 @@ import { UsuariosService } from '../../services/usuarios.service';
         <select
           [value]="pageSize"
           (change)="onPageSizeChange($event)"
-          class="bg-white ring-transparent ring-[3px] hover:ring-main/50 text-main text-end text-sm px-3 py-1 rounded-full outline-none cursor-pointer shadow-md"
+          class="bg-white hover:border-main/50 focus:border-main/50 border-2 text-main text-end text-sm px-3 py-1 rounded-2xl cursor-pointer outline-none"
         >
-          <option class="text-start" value="10">10</option>
           <option class="text-start" value="20">20</option>
-          <option class="text-start" value="30">30</option>
+          <option class="text-start" value="50">50</option>
+          <option class="text-start" value="100">100</option>
+          <option class="text-start" value="200">200</option>
         </select>
       </div>
     </div>
 
     <!-- Table -->
-    <div class="my-6 overflow-x-auto shadow-md rounded-3xl border b">
+    <div class="my-6 overflow-auto">
       <table class="w-full">
-        <thead class="bg-main text-white">
-          <tr class="h-12">
+        <thead class="">
+          <tr class="bg-main text-white h-8 text-sm">
+            <th class="max-w-8 w-8 rounded-l-lg"></th>
             @for (header of tableConstructor; track $index) {
-              <th (click)="sortData(header.key)" class="cursor-pointer text-start px-3">
+              <th (click)="sortData(header.key)" class="cursor-pointer text-start" [ngClass]="{ 'pr-2': $index === 0, 'pl-2': $index === tableConstructor.length - 1, 'p-2': $index != 0 && $index < tableConstructor.length - 1 }">
                 {{ header.label }}
                 @if (sortColumn === header.key) {
                   @if (sortDirection === 'asc') {
@@ -55,14 +58,15 @@ import { UsuariosService } from '../../services/usuarios.service';
                 }
               </th>
             }
-            <th>Opciones</th>
+            <th class="rounded-r-lg">Opciones</th>
           </tr>
         </thead>
         <tbody>
           @for (row of paginatedData; track $index) {
-            <tr class="h-10 hover:bg-neutral-100">
+            <tr class="h-10 text-sm group">
+              <td class="font-bold text-neutral-500 text-xxs max-w-10 text-center group-hover:bg-main/10 rounded-l-lg">{{ $index + 1 }}.</td>
               @for (header of tableConstructor; track $index) {
-                <td class="px-3">
+                <td class="group-hover:bg-main/10" [ngClass]="{ 'pr-2': $index === 0, 'pl-2': $index === tableConstructor.length - 1, 'p-2': $index != 0 && $index < tableConstructor.length - 1 }">
                   @if (header.status) {
                     @switch (getNestedValue(row, header.key)) {
                       @case ('Pendiente') {
@@ -108,9 +112,17 @@ import { UsuariosService } from '../../services/usuarios.service';
                       }
                     }
                   } @else if (header.isDate) {
-                    {{ getDateTransformed(getNestedValue(row, header.key)) }}
-                  } @else if (header.isArea) {
-                    {{ getAreaName(getNestedValue(row, header.key)) }}
+                    <span class="font-semibold text-xs text-neutral-400">
+                      {{ getDateTransformed(getNestedValue(row, header.key)) }}
+                    </span>
+                  } @else if (header.isId) {
+                    <span class="font-semibold text-xs text-neutral-400">
+                      {{ getNestedValue(row, header.key) }}
+                    </span>
+                  } @else if (header.isDependencia) {
+                    <span class="badge bg-main/75 truncate text-white">
+                      {{ getDependenciaName(getNestedValue(row, header.key)) }}
+                    </span>
                   } @else if (header.isUsuario) {
                     {{ getUsuarioName(getNestedValue(row, header.key)) }}
                   } @else if (header.isFormat) {
@@ -146,12 +158,20 @@ import { UsuariosService } from '../../services/usuarios.service';
                   }
                 </td>
               }
-              <td>
-                <div class="flex items-center justify-center gap-4">
+              <td class="group-hover:bg-main/10 rounded-r-lg">
+                <div class="flex items-center justify-center text-base gap-4">
                   @for (btn of actions; track $index) {
-                    <button (click)="action.emit({ action: btn.action, item: row })" [class]="btn.color" [title]="btn.title">
-                      <fa-icon [icon]="btn.icon"></fa-icon>
-                    </button>
+                    @if (btn.ownership) {
+                      @if (currentUser === getNestedValue(row, 'propietario.ownerId')) {
+                        <button (click)="action.emit({ action: btn.action, item: row })" [class]="btn.color" [title]="btn.title">
+                          <fa-icon [icon]="btn.icon"></fa-icon>
+                        </button>
+                      }
+                    } @else {
+                      <button (click)="action.emit({ action: btn.action, item: row })" [class]="btn.color" [title]="btn.title">
+                        <fa-icon [icon]="btn.icon"></fa-icon>
+                      </button>
+                    }
                   }
                 </div>
               </td>
@@ -162,27 +182,27 @@ import { UsuariosService } from '../../services/usuarios.service';
     </div>
 
     <!-- Paginate -->
-    <div class="flex justify-between gap-2">
+    <div class="flex items-center justify-between gap-2">
       <!-- Paginate -->
-      <div class="text-neutral-400 text-sm">
-        Mostrando {{ startRecord + 1 }} a {{ endRecord }} de {{ filteredData.length }} registros
+      <div class="text-neutral-400 text-xs">
+        Mostrando &nbsp; {{ startRecord + 1 }} &nbsp;a&nbsp; {{ endRecord }} &nbsp;de&nbsp; {{ filteredData.length }} &nbsp; registros
       </div>
       <!-- Paginate -->
       <div class="flex gap-2">
         <!-- Previous -->
-         <button (click)="prevPage()" [disabled]="currentPage === 1" [ngClass]="{'bg-neutral-200 hover:bg-neutral-200': currentPage === 1}" class="bg-main hover:bg-main-hover w-8 h-8 text-white rounded-full font-semibold text-sm">
+         <button (click)="prevPage()" [disabled]="currentPage === 1" [ngClass]="{'bg-neutral-200 hover:bg-neutral-200': currentPage === 1}" class="bg-main hover:bg-main-hover w-7 h-7 text-white rounded-full font-semibold text-sm">
           <fa-icon class="text-sm" [icon]="Previous"></fa-icon>
         </button>
         <!-- Pages -->
         <div class="flex gap-0.5">
           @for (page of [].constructor(totalPages); track $index) {
-            <button (click)="goToPage($index + 1)" [ngClass]="{'bg-main text-white': currentPage === ($index + 1)}" class="border w-8 h-8 rounded-full outline-none hover:bg-main hover:text-white duration-300">
+            <button (click)="goToPage($index + 1)" [ngClass]="{'bg-main text-white': currentPage === ($index + 1)}" class="w-7 h-7 rounded-full outline-none hover:bg-main hover:text-white duration-300">
               {{ $index + 1 }}
             </button>
           }
         </div>
         <!-- Next -->
-        <button (click)="nextPage()" [disabled]="currentPage === totalPages" [ngClass]="{'bg-neutral-200 hover:bg-neutral-200': currentPage === totalPages}" class="bg-main hover:bg-main-hover w-8 h-8 text-white rounded-full font-semibold text-sm">
+        <button (click)="nextPage()" [disabled]="currentPage === totalPages" [ngClass]="{'bg-neutral-200 hover:bg-neutral-200': currentPage === totalPages}" class="bg-main hover:bg-main-hover w-7 h-7 text-white rounded-full font-semibold text-sm">
           <fa-icon class="text-sm" [icon]="Next"></fa-icon>
         </button>
       </div>
@@ -191,13 +211,25 @@ import { UsuariosService } from '../../services/usuarios.service';
   styles: ``,
 })
 export class TableComponent {
-  @Input() tableConstructor: { key: string, label: string, status?: boolean, priority?: boolean, isDate?: boolean, isUsuario?: boolean, isArea?: boolean, isSize?: boolean, isFormat?: boolean }[] = [];
+  @Input() tableConstructor: {
+    key: string,
+    label: string,
+    status?: boolean,
+    priority?: boolean,
+    isId?: boolean,
+    isDate?: boolean,
+    isUsuario?: boolean,
+    isDependencia?: boolean,
+    isSize?: boolean,
+    isFormat?: boolean
+  }[] = [];
   @Input() data: any[] = [];
-  @Input() actions: { action: string; icon: IconDefinition; color: string; title: string }[] = [];
+  @Input() actions: { action: string; icon: IconDefinition; color: string; title: string, ownership?: boolean }[] = [];
   @Output() action = new EventEmitter<{ action: string; item: any }>();
 
-  areas = inject(AreaService).areas;
+  dependencias = inject(DependenciasService).dependencias;
   usuarios = inject(UsuariosService).usuarios;
+  currentUser = inject(AuthService).usuarioLogged()!.id;
 
   searchTerm: string = '';
   sortColumn: string = '';
@@ -208,6 +240,10 @@ export class TableComponent {
   Previous = faChevronLeft;
   Next = faChevronRight;
   Search = faSearch;
+
+  // Dependencia
+  Area = faBuilding;
+  Obra = faHammer;
 
   // Priority
   High = faAngleUp;
@@ -224,7 +260,7 @@ export class TableComponent {
   Document = faFileLines;
 
   currentPage = 1;
-  pageSize = 10;
+  pageSize = 20;
   totalPages = 1;
   startRecord = 0;
   endRecord = 0;
@@ -264,9 +300,9 @@ export class TableComponent {
     return now.replace(/\b\w/g, l => l.toUpperCase());;
   }
 
-  getAreaName(areaId: string) {
-    const area = this.areas().find(a => a.id === areaId);
-    return area ? area.nombre : '';
+  getDependenciaName(dependenciaId: string) {
+    const dependencia = this.dependencias().find(d => d.id === dependenciaId);
+    return dependencia ? dependencia.nombre : '';
   }
 
   getUsuarioName(usuarioId: string) {
