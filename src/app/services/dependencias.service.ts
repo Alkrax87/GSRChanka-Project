@@ -1,5 +1,5 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { addDoc, collection, collectionData, deleteDoc, doc, Firestore, getDoc, query, updateDoc, where } from '@angular/fire/firestore';
+import { addDoc, collection, collectionData, deleteDoc, doc, Firestore, getDoc, updateDoc } from '@angular/fire/firestore';
 import { Dependencia } from '../interfaces/dependencia';
 import { Observable } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -14,11 +14,14 @@ export class DependenciasService {
   private _dependencias = signal<Dependencia[]>([]);
   public dependencias = this._dependencias.asReadonly();
 
-  public getDependencias(value: boolean) {
-    const areasQuery = query(this.dependenciasCollection, where('esArea', '==', value));
-    (collectionData(areasQuery, { idField: 'id' }) as Observable<Dependencia[]>).pipe(takeUntilDestroyed()).subscribe({
-      next: (data) => this._dependencias.set(data),
-      error: (err) => console.error('Error cargando áreas', err),
+  constructor() {
+    this.getDependencias();
+  }
+
+  public getDependencias() {
+    (collectionData(this.dependenciasCollection, { idField: 'id' }) as Observable<Dependencia[]>).pipe(takeUntilDestroyed()).subscribe({
+      next: (data) => (this._dependencias.set(data)),
+      error: (err) => console.error('Error cargando dependencias', err),
     });
   }
 
@@ -45,9 +48,7 @@ export class DependenciasService {
     const dependenciaDoc = doc(this.firestore, `dependencias/${id}`);
     getDoc(dependenciaDoc).then((doc) => {
       if (doc.exists()) {
-        this.updateDependencia(id, {
-          total: doc.data()['documentos'].total + change,
-        });
+        this.updateDependencia(id, { total: doc.data()['total'] + change });
       }
     });
   }
