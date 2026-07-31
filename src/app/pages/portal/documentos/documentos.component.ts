@@ -67,7 +67,7 @@ export class DocumentosComponent {
   // Table
   tableHeaders = [
     { key: 'codigo', label: 'Código' },
-    { key: 'propietario.persona', label: 'Dueño' },
+    { key: 'propietario.persona', label: 'Autor' },
     { key: 'asunto', label: 'Asunto' },
     { key: 'archivo.nombreArchivo', label: 'Nombre' },
     { key: 'tipo', label: 'Tipo' },
