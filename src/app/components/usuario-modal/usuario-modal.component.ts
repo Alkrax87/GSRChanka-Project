@@ -2,7 +2,6 @@ import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faFloppyDisk, faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AuthService } from '../../services/auth.service';
 import { UsuariosService } from '../../services/usuarios.service';
 import { Usuario } from '../../interfaces/usuario';
 import { DependenciasService } from '../../services/dependencias.service';
@@ -79,8 +78,8 @@ import { DependenciasService } from '../../services/dependencias.service';
             </div>
             <!-- Contraseña -->
             <div>
-              <label for="password" class="relative">
-                <input id="password" type="password" formControlName="password" placeholder="" class="input peer cursor-text">
+              <label for="contrasena" class="relative">
+                <input id="contrasena" type="password" formControlName="contrasena" placeholder="" class="input peer cursor-text">
                 <span class="input-base-label">Contraseña</span>
               </label>
             </div>
@@ -109,7 +108,6 @@ export class UsuarioModalComponent {
   @Output() close = new EventEmitter<void>();
 
   private fb = inject(FormBuilder);
-  private authService = inject(AuthService);
   private usuariosService = inject(UsuariosService);
   dependencias = inject(DependenciasService).dependencias;
   isSaving = false;
@@ -122,8 +120,7 @@ export class UsuarioModalComponent {
     correo: ['', [Validators.required, Validators.email]],
     dependenciaId: ['', Validators.required],
     usuario: ['', Validators.required],
-    password: [''],
-    contador: [0],
+    contrasena: [''],
   });
 
   // Icons
@@ -133,7 +130,7 @@ export class UsuarioModalComponent {
 
   ngOnInit() {
     if (!this.usuario) {
-      this.form.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
+      this.form.get('contrasena')?.setValidators([Validators.required, Validators.minLength(6)]);
     } else {
       this.form.patchValue(this.usuario);
     }
@@ -145,18 +142,35 @@ export class UsuarioModalComponent {
       const usuarioForm = this.form.value as Usuario;
 
       if (this.usuario?.id) {
-        this.usuariosService.updateUsuario(this.usuario.id, usuarioForm).then(() => this.close.emit());
-      } else {
-        const userCredentials: any = await this.authService.registerUser(this.form.value.usuario + '@gsrchanka.com', this.form.value.password!);
-        const newUser: Usuario = {
-          id: userCredentials.user.uid,
-          ...usuarioForm,
-        }
-
-        await this.usuariosService.addUsuario(newUser).then(() => {
+        try {
+          await this.usuariosService.updateUsuario(
+            this.usuario.id,
+            this.form.value.nombres!,
+            this.form.value.apellidos!,
+            this.form.value.abreviatura!,
+            this.form.value.telefono!,
+            this.form.value.correo!,
+            this.form.value.dependenciaId!
+          ).then((res: any) => {
+            alert("Usuario " + res.data.username + " actualizado correctamente.");
+            this.isSaving = false;
+            this.close.emit();
+          });
+        } catch (error) {
+          alert(error);
           this.isSaving = false;
-          this.close.emit();
-        });
+        }
+      } else {
+        try {
+          await this.usuariosService.addUsuario(usuarioForm).then((res: any) => {
+            alert("Usuario " + res.data.username + " creado correctamente.");
+            this.isSaving = false;
+            this.close.emit();
+          });
+        } catch (error) {
+          alert(error);
+          this.isSaving = false;
+        }
       }
     } else {
       alert('Por favor, complete todos los campos obligatorios.');

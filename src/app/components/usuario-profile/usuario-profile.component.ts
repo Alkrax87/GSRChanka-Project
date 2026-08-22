@@ -1,7 +1,7 @@
 import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { Usuario } from '../../interfaces/usuario';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faBuilding, faEnvelope, faHammer, faListOl, faPhone, faTag, faTimes, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faBuilding, faEnvelope, faHammer, faListOl, faPhone, faTag, faTimes, faUser, faUserShield, faUserTie } from '@fortawesome/free-solid-svg-icons';
 import { DependenciasService } from '../../services/dependencias.service';
 import { Dependencia } from '../../interfaces/dependencia';
 
@@ -18,7 +18,11 @@ import { Dependencia } from '../../interfaces/dependencia';
           </div>
           <div class="absolute top-12 w-full flex justify-center">
             <div class="bg-main text-white text-4xl flex items-center justify-center min-w-24 w-24 h-24 rounded-full">
-              <fa-icon [icon]="User"></fa-icon>
+              @switch (usuario.rol) {
+                @case ('SUPERADMIN') { <fa-icon [icon]="Super"></fa-icon> }
+                @case ('BOSS') { <fa-icon [icon]="Boss"></fa-icon> }
+                @case ('OPERATOR') { <fa-icon [icon]="Operator"></fa-icon> }
+              }
             </div>
           </div>
         </div>
@@ -66,7 +70,9 @@ export class UsuarioProfileComponent {
 
   private dependencias = inject(DependenciasService).dependencias;
 
-  User = faUser;
+  Super = faUserShield;
+  Boss = faUserTie;
+  Operator = faUser;
   Area = faBuilding;
   Obra = faHammer;
   Phone = faPhone;
