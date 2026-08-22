@@ -1,15 +1,17 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { Firestore, collection, collectionData, deleteDoc, doc, updateDoc, setDoc, getDoc } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, doc, updateDoc, getDoc } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Usuario } from '../interfaces/usuario';
+import { Functions, httpsCallable } from '@angular/fire/functions';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UsuariosService {
+  private functions = inject(Functions);
   private firestore = inject(Firestore);
-  usuariosCollection = collection(this.firestore, 'usuarios');
+  private usuariosCollection = collection(this.firestore, 'usuarios');
 
   private _usuarios = signal<Usuario[]>([]);
   public usuarios = this._usuarios.asReadonly();
@@ -30,26 +32,31 @@ export class UsuariosService {
     return getDoc(usuarioDoc);
   }
 
-  public addUsuario(usuario: Usuario) {
-    const usuarioDoc = doc(this.usuariosCollection, usuario.id);
-    return setDoc(usuarioDoc, usuario);
+  public async addUsuario(usuario: Usuario) {
+    return await httpsCallable(this.functions, 'createUser')(usuario);
   }
 
-  public updateUsuario(id: string, usuario: Partial<Usuario>) {
-    const usuarioDoc= doc(this.firestore, `usuarios/${id}`);
-    return updateDoc(usuarioDoc, usuario);
+  public async updateUsuario(id: string, nombres: string, apellidos: string, abreviatura: string, telefono: string, correo: string, dependenciaId: string) {
+    return await httpsCallable(this.functions, 'updateUser')({ uid: id, nombres, apellidos, abreviatura, telefono, correo, dependenciaId });
   }
 
-  public deleteUsuario(id: string) {
-    const usuarioDoc = doc(this.firestore, `usuarios/${id}`);
-    return deleteDoc(usuarioDoc);
+  public async deleteUsuario(id: string) {
+    return await httpsCallable(this.functions, 'deleteUser')({ uid: id });
+  }
+
+  public async changePassword(id: string, newPassword: string) {
+    return await httpsCallable(this.functions, 'changePassword')({ uid: id, newPassword });
+  }
+
+  public async changeRole(id: string, newRole: string) {
+    return await httpsCallable(this.functions, 'changeRole')({ uid: id, newRole });
   }
 
   public changeCounter(id: string, change: number) {
     const usuarioDoc = doc(this.firestore, `usuarios/${id}`);
     getDoc(usuarioDoc).then((doc) => {
       if (doc.exists()) {
-        this.updateUsuario(id, { contador: doc.data()['contador'] + change });
+        updateDoc(usuarioDoc, { contador: doc.data()['contador'] + change });
       }
     });
   }

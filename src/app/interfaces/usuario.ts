@@ -6,6 +6,7 @@ export interface Usuario {
   telefono: string;
   correo: string;
   dependenciaId: string;
-  usuario: string;
   contador: number;
+  rol: string;
+  usuario: string;
 }
