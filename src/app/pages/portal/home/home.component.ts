@@ -6,9 +6,9 @@ import { AuthService } from '../../../services/auth.service';
   imports: [],
   template: `
     <div class="relative flex flex-col justify-center items-center p-5 h-full" style="height: calc(100vh - 64px);">
-      @if (usuario()) {
+      @if (currentUser()) {
         <h1 class="text-4xl animate-fade-up delay-75">
-          Bienvenido <span class="text-main font-bold">{{ usuario()!.nombres + ' ' + usuario()!.apellidos }}</span>
+          Bienvenido <span class="text-main font-bold">{{ currentUser()?.displayName }}</span>
         </h1>
       }
       <div class="absolute bottom-0">
@@ -33,5 +33,5 @@ import { AuthService } from '../../../services/auth.service';
   `,
 })
 export class HomeComponent {
-  usuario = inject(AuthService).usuarioLogged;
+  currentUser = inject(AuthService).usuarioLogged;
 }

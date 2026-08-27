@@ -1,7 +1,7 @@
 import { Component, EventEmitter, inject, Input, Output, SimpleChanges } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faAngleDown, faAngleUp, faBuilding, faCheck, faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faFileLines, faGear, faHammer, faHourglassHalf, faMinus, faSearch, faXmark, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faAngleDown, faAngleUp, faBuilding, faCheck, faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faFileLines, faGear, faHammer, faHourglassHalf, faMinus, faSearch, faUser, faUserShield, faUserTie, faXmark, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { Timestamp } from '@angular/fire/firestore';
 import { UsuariosService } from '../../services/usuarios.service';
 import { DependenciasService } from '../../services/dependencias.service';
@@ -153,13 +153,31 @@ import { AuthService } from '../../services/auth.service';
                     <span class="bg-neutral-200 truncate rounded-full text-sm px-3 pb-0.5">
                       <fa-icon class="text-neutral-600" [icon]="Document"></fa-icon>&nbsp; {{ (getNestedValue(row, header.key) / 1024 / 1024).toFixed(2) }} MB
                     </span>
+                  } @else if (header.isRole) {
+                    @switch (getNestedValue(row, header.key)) {
+                      @case ('SUPERADMIN') {
+                        <span class="bg-red-600 text-white badge">
+                          <fa-icon [icon]="Super"></fa-icon>&nbsp; ADMIN
+                        </span>
+                      }
+                      @case ('BOSS') {
+                        <span class="bg-sky-700 text-white badge">
+                          <fa-icon [icon]="Boss"></fa-icon>&nbsp; JEFE
+                        </span>
+                      }
+                      @case ('OPERATOR') {
+                        <span class="bg-teal-600 text-white badge">
+                          <fa-icon [icon]="Operator"></fa-icon>&nbsp; ASISTENTE
+                        </span>
+                      }
+                    }
                   } @else {
                     {{ getNestedValue(row, header.key) || '-' }}
                   }
                 </td>
               }
               <td class="group-hover:bg-main/10 rounded-r-lg">
-                <div class="flex items-center justify-center text-base gap-4">
+                <div class="flex items-center justify-center text-base gap-2">
                   @for (btn of actions; track $index) {
                     @if (btn.ownership) {
                       @if (currentUser === getNestedValue(row, 'propietario.ownerId')) {
@@ -221,7 +239,8 @@ export class TableComponent {
     isUsuario?: boolean,
     isDependencia?: boolean,
     isSize?: boolean,
-    isFormat?: boolean
+    isFormat?: boolean,
+    isRole?: boolean,
   }[] = [];
   @Input() data: any[] = [];
   @Input() actions: { action: string; icon: IconDefinition; color: string; title: string, ownership?: boolean }[] = [];
@@ -229,7 +248,7 @@ export class TableComponent {
 
   dependencias = inject(DependenciasService).dependencias;
   usuarios = inject(UsuariosService).usuarios;
-  currentUser = inject(AuthService).usuarioLogged()!.id;
+  currentUser = inject(AuthService).usuarioLogged()!.uid;
 
   searchTerm: string = '';
   sortColumn: string = '';
@@ -258,6 +277,11 @@ export class TableComponent {
 
   // Size
   Document = faFileLines;
+
+  // Role
+  Super = faUserShield;
+  Boss = faUserTie;
+  Operator = faUser;
 
   currentPage = 1;
   pageSize = 20;

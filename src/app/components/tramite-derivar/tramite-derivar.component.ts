@@ -85,7 +85,7 @@ export class TramiteDerivarComponent {
   // areas = inject(AreaService).areas;
   // filteredAreas = signal<Area[]>([]);
   currentArea = inject(AuthService).usuarioLogged()!.dependenciaId;
-  user = inject(AuthService).usuarioLogged()!.id;
+  user = inject(AuthService).usuarioLogged()!.uid;
 
   Document = faFileLines;
   Send = faShareFromSquare;

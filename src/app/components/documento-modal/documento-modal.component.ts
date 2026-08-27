@@ -170,7 +170,7 @@ export class DocumentoModalComponent {
 
         await this.documentosService.updateDocumento(this.documento.id!, documentoEditado);
       } else {
-        const userData = await this.usuariosService.getUsuario(this.currentUser!.id!);
+        const userData = await this.usuariosService.getUsuario(this.currentUser!.uid!);
 
         if (userData.exists()) {
           const documentoNuevo: Partial<Documento> = {
@@ -180,13 +180,13 @@ export class DocumentoModalComponent {
             adjuntadoPorDependencia: userData.data()['dependenciaId'],
             propietario: {
               persona: userData.data()['nombres'] + ' ' + userData.data()['apellidos'],
-              ownerId: this.currentUser!.id!
+              ownerId: this.currentUser!.uid!
             },
             fechaModificacion: new Date(),
             archivo: archivoData!,
           };
           this.dependenciasService.changeTotal(this.currentUser!.dependenciaId, +1);
-          this.usuariosService.changeCounter(this.currentUser!.id!, +1);
+          this.usuariosService.changeCounter(this.currentUser!.uid!, +1);
 
           await this.documentosService.addDocumento(documentoNuevo);
         } else {
