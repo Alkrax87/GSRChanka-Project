@@ -2,7 +2,7 @@ import { NgClass } from '@angular/common';
 import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faAngleDown, faAngleRight, faArrowRightFromBracket, faBuilding, faClipboardList, faFileLines, faHammer, faHome, faMagnifyingGlass, faUserShield, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faAngleDown, faAngleRight, faArrowRightFromBracket, faBuilding, faClipboardList, faFileLines, faHammer, faHome, faMagnifyingGlass, faUser, faUserShield, faUserTie, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { LogOutComponent } from "../log-out/log-out.component";
 import { AuthService } from '../../services/auth.service';
 
@@ -10,10 +10,7 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-sidebar',
   imports: [FontAwesomeModule, RouterLink, RouterLinkActive, NgClass, LogOutComponent],
   template: `
-    <div
-      class="flex flex-col bg-neutral-800 duration-300 h-[100vh] fixed left-0 top-0 text-white z-50"
-      [ngClass]="{ 'w-64': isOpen, 'w-12': !isOpen }"
-    >
+    <div class="flex flex-col bg-neutral-800 duration-300 h-[100vh] fixed left-0 top-0 text-white z-50 select-none" [ngClass]="{ 'w-64': isOpen, 'w-12': !isOpen }">
       <!-- Title -->
       <div class="p-1">
         <div
@@ -23,8 +20,8 @@ import { AuthService } from '../../services/auth.service';
         >
           <img
             loading="lazy"
-            src="https://placehold.co/40x40" alt="BRAND-logo"
-            class="rounded-md duration-300"
+            src="https://pbs.twimg.com/profile_images/1223279373542993920/rtXA6v2o_200x200.jpg" alt="BRAND-logo"
+            class="rounded-full duration-300 bg-white p-1"
             [ngClass]="{ 'w-9 h-9': isOpen, 'w-8 h-8': !isOpen }"
           >
           @if (isOpen) {
@@ -42,86 +39,89 @@ import { AuthService } from '../../services/auth.service';
       <div class="bg-neutral-700 h-0.5"></div>
       <div class="flex flex-col gap-2 h-full py-3 px-2">
         @for (section of sections; track $index) {
-          <div>
-            @if (isOpen) {
-              <p class="text-neutral-500 text-xs px-2 mb-1">{{ section.sectionName }}</p>
-            } @else {
-              <div class="place-content-center h-4 mb-1">
-                <div class="bg-neutral-600 rounded-full h-0.5"></div>
-              </div>
-            }
-            <div class="flex flex-col gap-1">
-              @for (route of section.routes; track $index) {
-                @if (!route.multiRoutes) {
-                  <div
-                    class="flex gap-2 cursor-pointer pl-4 pr-2 py-2 -ml-2 hover:bg-main rounded-r-full text-sm duration-300 outline-none"
-                    [routerLink]="route.route"
-                    [routerLinkActive]="['bg-main']"
-                    (click)="resetSubRoutesStatus()"
-                  >
-                    <div class="min-w-4 max-w-4">
-                      <fa-icon [icon]="route.icon"></fa-icon>
-                    </div>
-                    @if (isOpen) {
-                      <p class="w-full">{{ route.name }}</p>
-                    }
-                  </div>
-                } @else {
-                  <div
-                    class="flex gap-2 cursor-pointer pl-4 pr-2 py-2 -ml-2 hover:bg-main rounded-r-full text-sm duration-300 outline-none"
-                    [routerLink]="route.route"
-                    [routerLinkActive]="['bg-main']"
-                    (click)="route.subRoutesStatus = !route.subRoutesStatus"
-                  >
-                    <div class="min-w-4 max-w-4">
-                      <fa-icon [icon]="route.icon"></fa-icon>
-                    </div>
-                    @if (isOpen) {
-                      <p class="w-full">{{ route.name }}</p>
-                      @if (route.subroutes) {
-                        <fa-icon class="text-center w-8 duration-300" [icon]="ArrowDown" [ngClass]="{ 'rotate-180' : route.subRoutesStatus}"></fa-icon>
-                      }
-                    }
-                  </div>
-                  @if (isOpen) {
-                    @if (route.subRoutesStatus) {
-                      <div class="text-sm">
-                        @for (subroute of route.subroutes; track $index) {
-                          <div class="border-l-2 border-neutral-700 ml-3.5 pl-3 duration-200 hover:text-main hover:border-l-main h-8 flex items-center cursor-pointer" [routerLink]="subroute.route" [routerLinkActive]="['text-main', 'border-l-main']">
-                            {{ subroute.name }}
-                          </div>
-                        }
+          @if (!section.allowedRoles || section.allowedRoles.includes(currentUser()?.role || '')) {
+            <div>
+              @if (isOpen) {
+                <p class="text-neutral-400 text-xs px-2 mb-1">{{ section.sectionName }}</p>
+              } @else {
+                <div class="place-content-center h-4 mb-1">
+                  <div class="bg-neutral-600 rounded-full h-0.5"></div>
+                </div>
+              }
+              <div class="flex flex-col gap-1">
+                @for (route of section.routes; track $index) {
+                  @if (!route.multiRoutes) {
+                    <div
+                      class="flex gap-2 cursor-pointer pl-4 pr-2 py-2 -ml-2 hover:bg-main rounded-r-full text-sm duration-300 outline-none"
+                      [routerLink]="route.route"
+                      [routerLinkActive]="['bg-main']"
+                      (click)="resetSubRoutesStatus()"
+                    >
+                      <div class="min-w-4 max-w-4">
+                        <fa-icon [icon]="route.icon"></fa-icon>
                       </div>
+                      @if (isOpen) {
+                        <p class="w-full">{{ route.name }}</p>
+                      }
+                    </div>
+                  } @else {
+                    <div
+                      class="flex gap-2 cursor-pointer pl-4 pr-2 py-2 -ml-2 hover:bg-main rounded-r-full text-sm duration-300 outline-none"
+                      [routerLink]="route.route"
+                      [routerLinkActive]="['bg-main']"
+                      (click)="route.subRoutesStatus = !route.subRoutesStatus"
+                    >
+                      <div class="min-w-4 max-w-4">
+                        <fa-icon [icon]="route.icon"></fa-icon>
+                      </div>
+                      @if (isOpen) {
+                        <p class="w-full">{{ route.name }}</p>
+                        @if (route.subroutes) {
+                          <fa-icon class="text-center w-8 duration-300" [icon]="ArrowDown" [ngClass]="{ 'rotate-180' : route.subRoutesStatus}"></fa-icon>
+                        }
+                      }
+                    </div>
+                    @if (isOpen) {
+                      @if (route.subRoutesStatus) {
+                        <div class="text-sm">
+                          @for (subroute of route.subroutes; track $index) {
+                            <div class="border-l-2 border-neutral-700 ml-3.5 pl-3 duration-200 hover:text-main hover:border-l-main h-8 flex items-center cursor-pointer" [routerLink]="subroute.route" [routerLinkActive]="['text-main', 'border-l-main']">
+                              {{ subroute.name }}
+                            </div>
+                          }
+                        </div>
+                      }
                     }
                   }
                 }
-              }
+              </div>
             </div>
-          </div>
+          }
         }
       </div>
       <div class="bg-neutral-700 h-0.5"></div>
       <!-- User -->
       <div class="p-2">
          <div class="flex items-center py-2 h-12 gap-2 duration-300" [ngClass]="{ 'px-2': isOpen }">
-            <img
-              loading="lazy"
-              src="https://placehold.co/32x32"
-              alt="USER-logo"
-              class="rounded-full w-8 h-8"
-              [ngClass]="{ 'cursor-pointer': !isOpen }"
-              (click)="!isOpen && (isLogOutModalOpen = true)"
-            >
+            <div class="bg-white text-neutral-700 text-lg flex items-center justify-center min-w-8 w-8 h-8 rounded-full" [ngClass]="{ 'cursor-pointer': !isOpen }" (click)="!isOpen && (isLogOutModalOpen = true)">
+              @if (currentUser() && currentUser()!.role) {
+                @switch (currentUser()!.role) {
+                  @case ('SUPERADMIN') { <fa-icon [icon]="Super"></fa-icon> }
+                  @case ('BOSS') { <fa-icon [icon]="Boss"></fa-icon> }
+                  @case ('OPERATOR') { <fa-icon [icon]="Operator"></fa-icon> }
+                }
+              }
+            </div>
             @if (isOpen) {
               <div class="w-full truncate">
-                @if (usuario()) {
+                @if (currentUser()) {
                   <div class="animate-fade-right delay-75">
-                    <p class="font-semibold text-sm -mb-1 truncate">{{ usuario()!.nombres + ' ' + usuario()!.apellidos }}</p>
-                    <p class="text-xs">{{ '@' + usuario()!.usuario }}</p>
+                    <p class="font-semibold text-xs -mb-1 truncate">{{ currentUser()!.displayName }}</p>
+                    <p class="text-xxs">{{ '@' + currentUser()?.username }}</p>
                   </div>
                 }
               </div>
-              <div class="flex items-center justify-center">
+              <div class="animate-fade-right flex items-center justify-center">
                 <button (click)="isLogOutModalOpen = true" [ngClass]="{'bg-white text-neutral-800': isLogOutModalOpen}" class="hover:bg-white hover hover:text-neutral-800 duration-300 rounded-lg w-8 h-8">
                   <fa-icon [icon]="LogOut"></fa-icon>
                 </button>
@@ -154,7 +154,7 @@ import { AuthService } from '../../services/auth.service';
 export class SidebarComponent {
   @Output() sidebarStatus = new EventEmitter<boolean>();
 
-  usuario = inject(AuthService).usuarioLogged;
+  currentUser = inject(AuthService).usuarioLogged;
 
   isLogOutModalOpen = false;
   isOpen: boolean = true;
@@ -163,10 +163,14 @@ export class SidebarComponent {
   ArrowDown = faAngleDown;
   ArrowClose = faAngleRight;
   LogOut = faArrowRightFromBracket;
+  Super = faUserShield;
+  Boss = faUserTie;
+  Operator = faUser;
 
   // Sidebar
   sections: {
     sectionName: string;
+    allowedRoles?: string[];
     routes: {
       multiRoutes?: boolean;
       name: string;
@@ -187,10 +191,18 @@ export class SidebarComponent {
     },
     {
       sectionName: 'Admin',
+      allowedRoles: ['SUPERADMIN'],
       routes: [
         { name: 'Usuarios', icon: faUserShield, route: './usuarios' },
         { name: 'Áreas', icon: faBuilding, route: './areas' },
         { name: 'Obras', icon: faHammer, route: './obras' },
+      ]
+    },
+    {
+      sectionName: 'Dashboard',
+      allowedRoles: ['SUPERADMIN', 'BOSS'],
+      routes: [
+        { name: 'Dashboard', icon: faHome, route: './dashboard' },
       ]
     },
     {

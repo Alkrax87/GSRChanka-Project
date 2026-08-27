@@ -10,6 +10,8 @@ import { TramitesComponent } from './pages/portal/tramites/tramites.component';
 import { DocumentosComponent } from './pages/portal/documentos/documentos.component';
 import { AreasComponent } from './pages/portal/dependencias/areas/areas.component';
 import { ObrasComponent } from './pages/portal/dependencias/obras/obras.component';
+import { roleGuard } from './guards/role.guard';
+import { DashboardComponent } from './pages/portal/dashboard/dashboard.component';
 
 const redirectLoggedIn = () => redirectLoggedInTo(['portal/home']);
 const redirectUnauthorizedUser = () => redirectUnauthorizedTo(['login']);
@@ -31,14 +33,13 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'home', pathMatch: 'full' },
       { path: 'home', component: HomeComponent },
-      // Admin
-      { path: 'usuarios', component:  UsuariosComponent},
-      { path: 'areas', component:  AreasComponent },
-      { path: 'obras', component:  ObrasComponent },
-      // User
-      { path: 'documentos', component:  DocumentosComponent},
-      { path: 'tramites', component: TramitesComponent },
-      { path: 'seguimiento', component: HomeComponent },
+      { path: 'usuarios', component: UsuariosComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN'] } },
+      { path: 'areas', component: AreasComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN'] } },
+      { path: 'obras', component: ObrasComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN'] } },
+      { path: 'dashboard', component: DashboardComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN', 'BOSS'] } },
+      { path: 'documentos', component: DocumentosComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN', 'BOSS', 'OPERATOR'] } },
+      { path: 'tramites', component: TramitesComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN', 'BOSS', 'OPERATOR'] } },
+      { path: 'seguimiento', component: HomeComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN', 'BOSS', 'OPERATOR'] } },
     ],
   },
   { path: '**', redirectTo: '' },
