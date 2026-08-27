@@ -21,22 +21,22 @@
     @apply flex flex-col gap-4;
   }
   .btn {
-    @apply px-6 py-2 rounded-2xl shadow-md;
+    @apply px-6 py-2 rounded-2xl shadow-md flex items-center gap-2;
   }
   .btn-cancel {
-    @apply btn bg-neutral-100 hover:bg-neutral-200/75 flex items-center gap-2;
+    @apply btn bg-neutral-100 hover:bg-neutral-200/75;
   }
   .btn-main {
-    @apply btn bg-main hover:bg-main/80 text-white flex items-center gap-2;
+    @apply btn bg-main hover:bg-main/80 text-white;
   }
   .btn-add {
-    @apply btn bg-green-600 hover:bg-green-600/80 text-white flex items-center gap-2;
+    @apply btn bg-green-600 hover:bg-green-600/80 text-white;
   }
   .btn-edit {
-    @apply btn bg-yellow-500 hover:bg-yellow-500/80 text-white flex items-center gap-2;
+    @apply btn bg-yellow-500 hover:bg-yellow-500/80 text-white;
   }
   .btn-delete {
-    @apply btn bg-red-600 hover:bg-red-600/80 text-white flex items-center gap-2;
+    @apply btn bg-red-600 hover:bg-red-600/80 text-white;
   }
   .badge {
     @apply text-xs px-4 py-1 flex items-center w-fit gap-1 font-semibold rounded-full shadow-md;
