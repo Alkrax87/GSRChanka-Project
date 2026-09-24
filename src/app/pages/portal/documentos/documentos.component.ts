@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { BreadcrumbComponent } from '../../../components/breadcrumb/breadcrumb.component';
-import { faDownload, faEdit, faFileLines, faPenToSquare, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faEdit, faFileLines, faPaperPlane, faPenToSquare, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { DocumentosService } from '../../../services/documentos.service';
 import { Documento } from '../../../interfaces/documento';
 import { DocumentoModalComponent } from "../../../components/documento-modal/documento-modal.component";
@@ -9,10 +9,11 @@ import { TableComponent } from "../../../components/table/table.component";
 import { ConfirmacionEliminarModalComponent } from "../../../components/confirmacion-eliminar-modal/confirmacion-eliminar-modal.component";
 import { DocumentoDownloadModalComponent } from "../../../components/documento-download-modal/documento-download-modal.component";
 import { DependenciasService } from '../../../services/dependencias.service';
+import { DocumentoSendModalComponent } from '../../../components/documento-send-modal/documento-send-modal.component';
 
 @Component({
   selector: 'app-documentos',
-  imports: [FaIconComponent, BreadcrumbComponent, DocumentoModalComponent, TableComponent, ConfirmacionEliminarModalComponent, DocumentoDownloadModalComponent],
+  imports: [FaIconComponent, BreadcrumbComponent, DocumentoModalComponent, TableComponent, ConfirmacionEliminarModalComponent, DocumentoDownloadModalComponent, DocumentoSendModalComponent],
   template: `
     <div class="flex flex-col gap-4 p-8 select-none">
       <!-- Top -->
@@ -49,6 +50,13 @@ import { DependenciasService } from '../../../services/dependencias.service';
       ></app-documento-download-modal>
     }
 
+    @if (isDocumentoSendOpen()) {
+      <app-documento-send-modal
+        [documento]="selectedDocumento()!"
+        (close)="isDocumentoSendOpen.set(false)"
+      ></app-documento-send-modal>
+    }
+
     @if (isConfirmOpen()) {
       <app-confirmacion-eliminar-modal
         [message]="'¿Eliminar el documento ' + selectedDocumento()!.codigo + '-' + selectedDocumento()!.archivo.nombreArchivo + '?'"
@@ -66,7 +74,7 @@ export class DocumentosComponent {
 
   // Table
   tableHeaders = [
-    { key: 'codigo', label: 'Código' },
+    { key: 'codigo', label: 'Código', isId: true },
     { key: 'propietario.persona', label: 'Autor' },
     { key: 'asunto', label: 'Asunto' },
     { key: 'archivo.nombreArchivo', label: 'Nombre' },
@@ -79,11 +87,13 @@ export class DocumentosComponent {
     { action: 'download', icon: faDownload, color: 'text-sky-600', title: 'Descargar' },
     { action: 'edit', icon: faEdit, color: 'text-amber-400', title: 'Editar', ownership: true },
     { action: 'delete', icon: faTrash, color: 'text-red-600', title: 'Eliminar', ownership: true },
+    { action: 'send', icon: faPaperPlane, color: 'text-green-600', title: 'Enviar' },
   ];
 
   // Modals
   isDocumentoModalOpen = signal(false);
   isDocumentoDownloadOpen = signal(false);
+  isDocumentoSendOpen = signal(false);
   isConfirmOpen = signal(false);
   selectedDocumento = signal<Documento | null>(null);
 
@@ -103,6 +113,9 @@ export class DocumentosComponent {
         break;
       case 'delete':
         this.onDelete(item);
+        break;
+      case 'send':
+        this.onSend(item);
         break;
     }
   }
@@ -125,6 +138,11 @@ export class DocumentosComponent {
   onDelete(documento: Documento) {
     this.selectedDocumento.set(documento);
     this.isConfirmOpen.set(true);
+  }
+
+  onSend(documento: Documento) {
+    this.selectedDocumento.set(documento);
+    this.isDocumentoSendOpen.set(true);
   }
 
   confirmDelete() {
