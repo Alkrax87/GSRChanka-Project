@@ -1,5 +1,5 @@
 import { computed, inject, Injectable } from '@angular/core';
-import { addDoc, collection, collectionData, deleteDoc, doc, Firestore, query, updateDoc, where } from '@angular/fire/firestore';
+import { addDoc, collection, collectionData, deleteDoc, doc, documentId, Firestore, query, updateDoc, where } from '@angular/fire/firestore';
 import { Observable, of, switchMap } from 'rxjs';
 import { Documento } from '../interfaces/documento';
 import { AuthService } from './auth.service';
@@ -43,6 +43,14 @@ export class DocumentosService {
       peso: File.size,
       fecha: new Date(),
     }
+  }
+
+  public getDocumentosPorIds(ids: string[]): Observable<Documento[]> {
+    if (!ids || ids.length === 0) return of([]);
+
+    const queryDocumentos = query(this.documentosCollection, where(documentId(), 'in', ids));
+
+    return collectionData(queryDocumentos, { idField: 'id' }) as Observable<Documento[]>;
   }
 
   async deleteFile(filePath: string): Promise<void> {
