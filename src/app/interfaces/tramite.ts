@@ -1,29 +1,22 @@
-export interface Documento {
-  id: string;
-  nombre: string;
-  tipo: 'Revisión' | 'Oficio' | 'Documento' | 'TdR' | 'Otro';
-  adjuntadoPorArea: string;
-  estado: 'Pendiente' | 'Aprobado' | 'Rechazado';
-  rutaArchivo: string;
-}
-
 export interface Movimiento {
-  areaOrigen: string;
-  areaDestino: string | null;
-  fechaIngreso: Date;
+  usuarioEmisor: string;
+  dependenciaEmisor: string;
+  dependenciaReceptor: string;
+  fechaEnvio: Date;
+  fechaRecepcion: Date | null;
   fechaSalida: Date | null;
-  responsable: string | null;
-  prioridad: 'Sin Determinar' | 'Baja' | 'Media' | 'Alta';
-  estado: 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado';
-  observaciones: string;
+  estado: 'Enviado' | 'Recibido' | 'Devuelto' | 'Derivado';
+  observaciones?: string | null;
 }
 
 export interface Tramite {
   id?: string;
-  asunto: string;
-  documentos: Documento[];
+  codigoTicket: string;
+  dependenciaOrigen: string;
+  documentoInicial: string;
+  documentosAdjuntos: string[];
+  dependenciaActual: string;
+  estadoActual: 'Pendiente' | 'En Proceso' | 'Devuelto' | 'Finalizado';
   trazabilidad: Movimiento[];
-  estadoGlobal: 'Pendiente' | 'En Proceso' | 'Completado' | 'Cancelado';
-  areaActual: string;
-  areaCreacion: string;
+  dependenciasInvolucradas: string[];
 }

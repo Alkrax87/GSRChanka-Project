@@ -1,39 +1,48 @@
-import { effect, inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { addDoc, collection, collectionData, deleteDoc, doc, Firestore, query, updateDoc, where } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
 import { Tramite } from '../interfaces/tramite';
 import { AuthService } from './auth.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TramitesService {
   private firestore = inject(Firestore);
-  private authService = inject(AuthService);
-  tramitesCollection = collection(this.firestore, 'tramites');
+  private currentUser = inject(AuthService).usuarioLogged;
+  private tramitesCollection = collection(this.firestore, 'tramites');
 
-  private _tramites = signal<Tramite[]>([]);
-  public tramites = this._tramites.asReadonly();
+  private _tramitesRecibidos = signal<Tramite[]>([]);
+  private _tramitesEnviados = signal<Tramite[]>([]);
+  private _tramitesIniciados = signal<Tramite[]>([]);
+  public tramitesRecibidos = this._tramitesRecibidos.asReadonly();
+  public tramitesEnviados = this._tramitesEnviados.asReadonly();
+  public tramitesIniciados = this._tramitesIniciados.asReadonly();
 
-  constructor() {
-    this.listenUserArea();
+  public getTramitesRecibidos() {
+    const queryRecibidos = query(this.tramitesCollection, where('dependenciaActual', '==', this.currentUser()!.dependenciaId));
+    collectionData(queryRecibidos, { idField: 'id' }).pipe(takeUntilDestroyed()).subscribe({
+      next: (data) => (this._tramitesRecibidos.set(data as Tramite[])),
+      error: (err) => (console.error('Error cargando recibidos', err)),
+    });
   }
 
-  private listenUserArea() {
-    effect(() => {
-      const user = this.authService.usuarioLogged();
+  public getTramitesEnviados() {
+    const queryEnviados = query(this.tramitesCollection, where('dependenciasInvolucradas', 'array-contains', this.currentUser()!.dependenciaId));
+    collectionData(queryEnviados, { idField: 'id' }).pipe(takeUntilDestroyed()).subscribe({
+      next: (data) => {
+        const enviados = (data as Tramite[]).filter(t => t.dependenciaActual !== this.currentUser()!.dependenciaId);
+        this._tramitesEnviados.set(enviados);
+      },
+      error: (err) => (console.error('Error cargando enviados', err)),
+    });
+  }
 
-      if (!user?.dependenciaId) {
-        this._tramites.set([]);
-        return;
-      }
-
-      const queryTramites = query(this.tramitesCollection, where('areaActual', '==', user.dependenciaId));
-
-      (collectionData(queryTramites, { idField: 'id' }) as Observable<Tramite[]>).subscribe({
-        next: (data) => this._tramites.set(data),
-        error: (err) => console.error('Error cargando trámites', err),
-      });
+  public getTramitesIniciados() {
+    const queryIniciados = query(this.tramitesCollection, where('dependenciaOrigen', '==', this.currentUser()!.dependenciaId));
+    collectionData(queryIniciados, { idField: 'id' }).pipe(takeUntilDestroyed()).subscribe({
+      next: (data) => (this._tramitesIniciados.set(data as Tramite[])),
+      error: (err) => (console.error('Error cargando iniciados', err)),
     });
   }
 
