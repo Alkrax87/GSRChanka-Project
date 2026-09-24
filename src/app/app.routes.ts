@@ -1,17 +1,19 @@
 import { Routes } from '@angular/router';
 import { AuthGuard, redirectLoggedInTo, redirectUnauthorizedTo } from '@angular/fire/auth-guard';
+import { roleGuard } from './guards/role.guard';
 import { MainComponent } from './pages/portal/main/main.component';
 import { HomeComponent } from './pages/portal/home/home.component';
 import { LandingComponent } from './pages/public/landing/landing.component';
 import { LoginComponent } from './pages/public/login/login.component';
 import { SeguimientoComponent } from './pages/public/seguimiento/seguimiento.component';
 import { UsuariosComponent } from './pages/portal/usuarios/usuarios.component';
-import { TramitesComponent } from './pages/portal/tramites/tramites.component';
 import { DocumentosComponent } from './pages/portal/documentos/documentos.component';
 import { AreasComponent } from './pages/portal/dependencias/areas/areas.component';
 import { ObrasComponent } from './pages/portal/dependencias/obras/obras.component';
-import { roleGuard } from './guards/role.guard';
 import { DashboardComponent } from './pages/portal/dashboard/dashboard.component';
+import { RecibidosComponent } from './pages/portal/tramites/recibidos/recibidos.component';
+import { EnviadosComponent } from './pages/portal/tramites/enviados/enviados.component';
+import { IniciadosComponent } from './pages/portal/tramites/iniciados/iniciados.component';
 
 const redirectLoggedIn = () => redirectLoggedInTo(['portal/home']);
 const redirectUnauthorizedUser = () => redirectUnauthorizedTo(['login']);
@@ -38,7 +40,9 @@ export const routes: Routes = [
       { path: 'obras', component: ObrasComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN'] } },
       { path: 'dashboard', component: DashboardComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN', 'BOSS'] } },
       { path: 'documentos', component: DocumentosComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN', 'BOSS', 'OPERATOR'] } },
-      { path: 'tramites', component: TramitesComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN', 'BOSS', 'OPERATOR'] } },
+      { path: 'tramitesR', component: RecibidosComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN', 'BOSS', 'OPERATOR'] } },
+      { path: 'tramitesE', component: EnviadosComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN', 'BOSS', 'OPERATOR'] } },
+      { path: 'tramitesI', component: IniciadosComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN', 'BOSS', 'OPERATOR'] } },
       { path: 'seguimiento', component: HomeComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN', 'BOSS', 'OPERATOR'] } },
     ],
   },

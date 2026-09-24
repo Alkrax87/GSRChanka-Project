@@ -2,7 +2,7 @@ import { NgClass } from '@angular/common';
 import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faAngleDown, faAngleRight, faArrowRightFromBracket, faBuilding, faClipboardList, faFileLines, faHammer, faHome, faMagnifyingGlass, faUser, faUserShield, faUserTie, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faAngleDown, faAngleRight, faArrowRightFromBracket, faBuilding, faEnvelope, faFileLines, faFilePen, faHammer, faHome, faPaperPlane, faUser, faUserShield, faUserTie, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { LogOutComponent } from "../log-out/log-out.component";
 import { AuthService } from '../../services/auth.service';
 
@@ -209,13 +209,14 @@ export class SidebarComponent {
       sectionName: 'Área',
       routes: [
         { name: 'Documentos', icon: faFileLines, route: './documentos' },
-        { name: 'Trámites', icon: faClipboardList, route: './tramites' }
       ]
     },
     {
-      sectionName: 'Seguimiento',
+      sectionName: 'Trámites',
       routes: [
-        { name: 'Seguimiento', icon: faMagnifyingGlass, route: './seguimiento' },
+        { name: 'Recibidos', icon: faEnvelope, route: './tramitesR' },
+        { name: 'Enviados', icon: faPaperPlane, route: './tramitesE' },
+        { name: 'Iniciados', icon: faFilePen, route: './tramitesI' },
       ]
     },
   ];
