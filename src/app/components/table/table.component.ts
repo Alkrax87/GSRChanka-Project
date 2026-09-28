@@ -1,15 +1,16 @@
 import { Component, EventEmitter, inject, Input, Output, SimpleChanges } from '@angular/core';
-import { CommonModule, formatDate } from '@angular/common';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faAngleDown, faAngleUp, faBuilding, faCheck, faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faFileLines, faGear, faHammer, faHourglassHalf, faMinus, faSearch, faUser, faUserShield, faUserTie, faXmark, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { formatDate, NgClass } from '@angular/common';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { faBuilding, faChevronDown, faChevronLeft, faChevronRight, faChevronUp, faFileLines, faHammer, faSearch, faUser, faUserShield, faUserTie, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { Timestamp } from '@angular/fire/firestore';
 import { UsuariosService } from '../../services/usuarios.service';
 import { DependenciasService } from '../../services/dependencias.service';
 import { AuthService } from '../../services/auth.service';
+import { DocumentosService } from '../../services/documentos.service';
 
 @Component({
   selector: 'app-table',
-  imports: [CommonModule, FontAwesomeModule],
+  imports: [NgClass, FaIconComponent],
   template: `
     <!-- Seach and Selector -->
     <div class="flex justify-between">
@@ -66,52 +67,8 @@ import { AuthService } from '../../services/auth.service';
             <tr class="h-10 text-sm group">
               <td class="font-bold text-neutral-500 text-xxs max-w-10 text-center group-hover:bg-main/10 rounded-l-lg">{{ $index + 1 }}.</td>
               @for (header of tableConstructor; track $index) {
-                <td class="group-hover:bg-main/10" [ngClass]="{ 'pr-2': $index === 0, 'pl-2': $index === tableConstructor.length - 1, 'p-2': $index != 0 && $index < tableConstructor.length - 1 }">
-                  @if (header.status) {
-                    @switch (getNestedValue(row, header.key)) {
-                      @case ('Pendiente') {
-                        <span class="bg-[#FFC108] text-white font-semibold text-sm rounded-full px-3 pb-0.5">
-                          <fa-icon [icon]="Hourglass"></fa-icon>&nbsp; {{ getNestedValue(row, header.key) }}
-                        </span>
-                      }
-                      @case ('En Proceso') {
-                        <span class="bg-[#17A2B9] text-white font-semibold text-sm rounded-full px-3 pb-0.5">
-                          <fa-icon [icon]="Gear"></fa-icon>&nbsp; {{ getNestedValue(row, header.key) }}
-                        </span>
-                      }
-                      @case ('Completado') {
-                        <span class="bg-[#28A745] text-white font-semibold text-sm rounded-full px-3 pb-0.5">
-                          <fa-icon [icon]="Check"></fa-icon>&nbsp; {{ getNestedValue(row, header.key) }}
-                        </span>
-                      }
-                      @case ('Cancelado') {
-                        <span class="bg-[#DC3646] text-white font-semibold text-sm rounded-full px-3 pb-0.5">
-                          <fa-icon [icon]="Xmark"></fa-icon>&nbsp; {{ getNestedValue(row, header.key) }}
-                        </span>
-                      }
-                    }
-                  } @else if (header.priority) {
-                    @switch (getNestedValue(row, header.key)) {
-                      @case ('Sin Determinar') {
-                        <span class="bg-[#E2E2E3] text-neutral-500 text-center font-bold text-sm rounded-full px-5 pb-0.5">-</span>
-                      }
-                      @case ('Baja') {
-                        <span class="bg-[#21a300] text-white font-semibold text-sm rounded-full px-3 pb-0.5">
-                          <fa-icon [icon]="Low"></fa-icon>&nbsp; {{ getNestedValue(row, header.key) }}
-                        </span>
-                      }
-                      @case ('Media') {
-                        <span class="bg-[#0071c2] text-white font-semibold text-sm rounded-full px-3 pb-0.5">
-                          <fa-icon [icon]="Medium"></fa-icon>&nbsp; {{ getNestedValue(row, header.key) }}
-                        </span>
-                      }
-                      @case ('Alta') {
-                        <span class="bg-[#eb0004] text-white font-semibold text-sm rounded-full px-3 pb-0.5">
-                          <fa-icon [icon]="High"></fa-icon>&nbsp; {{ getNestedValue(row, header.key) }}
-                        </span>
-                      }
-                    }
-                  } @else if (header.isDate) {
+                <td class="group-hover:bg-main/10 text-sm" [ngClass]="{ 'pr-2': $index === 0, 'pl-2': $index === tableConstructor.length - 1, 'p-2': $index != 0 && $index < tableConstructor.length - 1 }">
+                  @if (header.isDate) {
                     <span class="font-semibold text-xs text-neutral-400">
                       {{ getDateTransformed(getNestedValue(row, header.key)) }}
                     </span>
@@ -119,38 +76,42 @@ import { AuthService } from '../../services/auth.service';
                     <span class="font-semibold text-xs text-neutral-400">
                       {{ getNestedValue(row, header.key) }}
                     </span>
+                  } @else if (header.isNew) {
+                    @if (getNestedValue(row, header.key) === 'Nuevo') {
+                      <span class="bg-yellow-400 text-white badge">¡ {{ getNestedValue(row, header.key) }} !</span>
+                    } @else {
+                      <span class="bg-neutral-200 text-black badge">{{ getNestedValue(row, header.key) }}</span>
+                    }
                   } @else if (header.isDependencia) {
-                    <span class="badge bg-main/75 truncate text-white">
-                      {{ getDependenciaName(getNestedValue(row, header.key)) }}
-                    </span>
-                  } @else if (header.isUsuario) {
-                    {{ getUsuarioName(getNestedValue(row, header.key)) }}
+                    <span>{{ getDependenciaName(getNestedValue(row, header.key)) }}</span>
+                  } @else if (header.isDocumento) {
+                    <span>{{ getDocumentoName(getNestedValue(row, header.key)) }}</span>
                   } @else if (header.isFormat) {
                     @switch (getNestedValue(row, header.key).split('/')[1]) {
                       @case ('pdf') {
-                        <span class="bg-[#E30809] text-white font-semibold text-sm rounded-full px-3 pb-0.5">PDF</span>
+                        <span class="bg-[#E30809] text-white badge">PDF</span>
                       }
                       @case ('msword') {
-                        <span class="bg-[#205FC0] text-white font-semibold text-sm rounded-full px-3 pb-0.5">Word</span>
+                        <span class="bg-[#205FC0] text-white badge">Word</span>
                       }
                       @case ('vnd.openxmlformats-officedocument.wordprocessingml.document') {
-                        <span class="bg-[#205FC0] text-white font-semibold text-sm rounded-full px-3 pb-0.5">Word</span>
+                        <span class="bg-[#205FC0] text-white badge">Word</span>
                       }
                       @case ('vnd.ms-excel') {
-                        <span class="bg-[#097640] text-white font-semibold text-sm rounded-full px-3 pb-0.5">Excel</span>
+                        <span class="bg-[#097640] text-white badge">Excel</span>
                       }
                       @case ('vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
-                        <span class="bg-[#097640] text-white font-semibold text-sm rounded-full px-3 pb-0.5">Excel</span>
+                        <span class="bg-[#097640] text-white badge">Excel</span>
                       }
                       @case ('vnd.ms-powerpoint') {
-                        <span class="bg-[#F14B28] text-white font-semibold text-sm rounded-full px-3 pb-0.5">PowerPoint</span>
+                        <span class="bg-[#F14B28] text-white badge">PowerPoint</span>
                       }
                       @case ('vnd.openxmlformats-officedocument.presentationml.presentation') {
-                        <span class="bg-[#F14B28] text-white font-semibold text-sm rounded-full px-3 pb-0.5">PowerPoint</span>
+                        <span class="bg-[#F14B28] text-white badge">PowerPoint</span>
                       }
                     }
                   } @else if (header.isSize) {
-                    <span class="bg-neutral-200 truncate rounded-full text-sm px-3 pb-0.5">
+                    <span class="bg-neutral-100 badge">
                       <fa-icon class="text-neutral-600" [icon]="Document"></fa-icon>&nbsp; {{ (getNestedValue(row, header.key) / 1024 / 1024).toFixed(2) }} MB
                     </span>
                   } @else if (header.isRole) {
@@ -199,9 +160,9 @@ import { AuthService } from '../../services/auth.service';
       </table>
     </div>
 
-    <!-- Paginate -->
+    <!-- Pagination -->
     <div class="flex items-center justify-between gap-2">
-      <!-- Paginate -->
+      <!-- All -->
       <div class="text-neutral-400 text-xs">
         Mostrando &nbsp; {{ startRecord + 1 }} &nbsp;a&nbsp; {{ endRecord }} &nbsp;de&nbsp; {{ filteredData.length }} &nbsp; registros
       </div>
@@ -232,15 +193,14 @@ export class TableComponent {
   @Input() tableConstructor: {
     key: string,
     label: string,
-    status?: boolean,
-    priority?: boolean,
     isId?: boolean,
     isDate?: boolean,
-    isUsuario?: boolean,
     isDependencia?: boolean,
+    isDocumento?: boolean,
     isSize?: boolean,
     isFormat?: boolean,
     isRole?: boolean,
+    isNew?: boolean,
   }[] = [];
   @Input() data: any[] = [];
   @Input() actions: { action: string; icon: IconDefinition; color: string; title: string, ownership?: boolean }[] = [];
@@ -248,6 +208,7 @@ export class TableComponent {
 
   dependencias = inject(DependenciasService).dependencias;
   usuarios = inject(UsuariosService).usuarios;
+  documentos = inject(DocumentosService).documentos;
   currentUser = inject(AuthService).usuarioLogged()!.uid;
 
   searchTerm: string = '';
@@ -263,17 +224,6 @@ export class TableComponent {
   // Dependencia
   Area = faBuilding;
   Obra = faHammer;
-
-  // Priority
-  High = faAngleUp;
-  Medium = faMinus;
-  Low = faAngleDown;
-
-  // Status
-  Hourglass = faHourglassHalf;
-  Gear = faGear;
-  Check = faCheck;
-  Xmark = faXmark;
 
   // Size
   Document = faFileLines;
@@ -329,9 +279,9 @@ export class TableComponent {
     return dependencia ? dependencia.nombre : '';
   }
 
-  getUsuarioName(usuarioId: string) {
-    const usuario = this.usuarios().find(u => u.id === usuarioId);
-    return usuario ? usuario.nombres + ' ' + usuario.apellidos : '';
+  getDocumentoName(documentoId: string) {
+    const documento = this.documentos().find(d => d.id === documentoId);
+    return documento ? documento.asunto : '';
   }
 
   onSearch(event: Event) {

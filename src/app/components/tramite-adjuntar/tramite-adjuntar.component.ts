@@ -29,7 +29,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
                   <div class="w-10 h-10 rounded-lg bg-main/10 flex justify-center items-center text-main">
                     <fa-icon [icon]="Document"></fa-icon>
                   </div>
-                  <p class="text-sm font-semibold text-neutral-700 truncate">{{ doc.archivo.nombreArchivo }}</p>
+                  <div>
+                    <p class="text-xs font-semibold text-neutral-400 truncate">{{ doc.codigo }}</p>
+                    <p class="text-sm font-semibold text-neutral-700 truncate">{{ doc.asunto }}</p>
+                  </div>
                 </div>
                 <a target="_blank" [href]="doc.archivo.url" class="text-sky-600 hover:text-sky-600/75 px-2">
                   <fa-icon [icon]="Download"></fa-icon>
@@ -48,7 +51,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
             <select formControlName="documentoId" class="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-main/50 focus:ring-2 focus:ring-main/20 text-neutral-600 transition-all cursor-pointer">
               <option value="" disabled selected>-- Selecciona un documento --</option>
               @for (miDoc of documentosFiltrados(); track miDoc.id) {
-                <option [value]="miDoc.id">{{ miDoc.archivo.nombreArchivo }}</option>
+                <option [value]="miDoc.id">{{ miDoc.codigo }}</option>
               } @empty {
                 <option value="" disabled>No tienes documentos disponibles para adjuntar.</option>
               }
