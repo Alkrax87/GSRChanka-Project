@@ -80,10 +80,6 @@ export class RecibidosComponent {
   isTramitesSendOpen = signal(false);
   selectedTramite = signal<Tramite | null>(null);
 
-  constructor() {
-    this.tramitesService.getTramitesRecibidos();
-  }
-
   handleAction({action, item}: { action: string; item: any }) {
     switch (action) {
       case 'files':

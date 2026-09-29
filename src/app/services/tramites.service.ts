@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, Injector, runInInjectionContext, signal } from '@angular/core';
 import { addDoc, collection, collectionData, deleteDoc, doc, Firestore, query, updateDoc, where } from '@angular/fire/firestore';
 import { Tramite } from '../interfaces/tramite';
 import { AuthService } from './auth.service';
@@ -9,6 +9,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 })
 export class TramitesService {
   private firestore = inject(Firestore);
+  private injector = inject(Injector);
   private currentUser = inject(AuthService).usuarioLogged;
   private tramitesCollection = collection(this.firestore, 'tramites');
 
@@ -18,12 +19,27 @@ export class TramitesService {
   public tramitesRecibidos = this._tramitesRecibidos.asReadonly();
   public tramitesEnviados = this._tramitesEnviados.asReadonly();
   public tramitesIniciados = this._tramitesIniciados.asReadonly();
+  public tramitesRecibidosNoVistos = computed(() =>
+    this._tramitesRecibidos().filter(tramite => tramite.trazabilidad?.[0]?.fechaRecepcion == null),
+  );
 
-  public getTramitesRecibidos() {
-    const queryRecibidos = query(this.tramitesCollection, where('dependenciaActual', '==', this.currentUser()!.dependenciaId));
-    collectionData(queryRecibidos, { idField: 'id' }).pipe(takeUntilDestroyed()).subscribe({
-      next: (data) => (this._tramitesRecibidos.set(data as Tramite[])),
-      error: (err) => (console.error('Error cargando recibidos', err)),
+  constructor() {
+    effect((onCleanup) => {
+      const dependenciaId = this.currentUser()?.dependenciaId;
+      if (!dependenciaId) {
+        this._tramitesRecibidos.set([]);
+        return;
+      }
+
+      const subscription = runInInjectionContext(this.injector, () => {
+        const queryRecibidos = query(this.tramitesCollection, where('dependenciaActual', '==', dependenciaId));
+        return collectionData(queryRecibidos, { idField: 'id' }).subscribe({
+          next: (data) => this._tramitesRecibidos.set(data as Tramite[]),
+          error: (err) => console.error('Error cargando recibidos', err),
+        });
+      });
+
+      onCleanup(() => subscription.unsubscribe());
     });
   }
 
