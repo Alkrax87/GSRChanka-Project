@@ -1,238 +1,210 @@
-import { NgClass } from '@angular/common';
-import { Component, EventEmitter, inject, Output } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faAngleDown, faAngleRight, faArrowRightFromBracket, faBuilding, faEnvelope, faFileLines, faFilePen, faHammer, faHome, faPaperPlane, faUser, faUserShield, faUserTie, IconDefinition } from '@fortawesome/free-solid-svg-icons';
-import { LogOutComponent } from "../log-out/log-out.component";
+import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { faAngleDown, faArrowRightFromBracket, faBuilding, faChartSimple, faEnvelope, faEnvelopeOpenText, faFileLines, faFilePen, faHammer, faHome, faPaperPlane, faUserShield, IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../services/auth.service';
+import { LogOutComponent } from '../log-out/log-out.component';
+
+interface SidebarRoute {
+  name: string;
+  icon: IconDefinition;
+  route?: string;
+  subroutes?: { name: string; icon: IconDefinition; route: string }[];
+  expanded?: boolean;
+}
+
+interface SidebarSection {
+  sectionName: string;
+  allowedRoles?: string[];
+  routes: SidebarRoute[];
+}
 
 @Component({
   selector: 'app-sidebar',
-  imports: [FontAwesomeModule, RouterLink, RouterLinkActive, NgClass, LogOutComponent],
+  imports: [FaIconComponent, RouterLink, RouterLinkActive, LogOutComponent],
   template: `
-    <div class="flex flex-col bg-neutral-800 duration-300 h-[100vh] fixed left-0 top-0 text-white z-50 select-none" [ngClass]="{ 'w-64': isOpen, 'w-12': !isOpen }">
-      <!-- Title -->
-      <div class="p-1">
-        <div
-          [routerLink]="'./home'"
-          class="flex items-center gap-2 rounded-lg cursor-pointer duration-300 outline-none"
-          [ngClass]="{ 'p-2 hover:bg-neutral-700 h-14': isOpen, 'h-8 my-3 pl-1': !isOpen }"
-        >
-          <img
-            loading="lazy"
-            src="https://pbs.twimg.com/profile_images/1223279373542993920/rtXA6v2o_200x200.jpg" alt="BRAND-logo"
-            class="rounded-full duration-300 bg-white p-1"
-            [ngClass]="{ 'w-9 h-9': isOpen, 'w-8 h-8': !isOpen }"
-          >
-          @if (isOpen) {
-            <p class="text-xl"><span class="font-bold text-main">GSR</span>Chanka</p>
-          }
-        </div>
-      </div>
-      <!-- Button -->
-      <div class="relative">
-        <div (click)="changeSidebarStatus()" class="bg-main hover:bg-main-hover cursor-pointer flex justify-center items-center w-8 h-8 absolute rounded-full -top-4 -right-4">
-          <fa-icon class="duration-300" [icon]="ArrowClose" [ngClass]="{ 'rotate-180' : isOpen}"></fa-icon>
-        </div>
-      </div>
+    @if (mobileOpen) {
+      <button type="button" aria-label="Cerrar menú" class="fixed inset-0 z-40 bg-neutral-950/60 backdrop-blur-sm md:hidden" (click)="closeMobile.emit()"></button>
+    }
+
+    <aside
+      class="fixed inset-y-0 left-0 z-50 flex flex-col overflow-visible border-r rounded-r-2xl border-neutral-200 bg-white text-neutral-700 shadow-xl shadow-neutral-200/60 transition-[width,transform] duration-300 ease-out md:translate-x-0"
+      [class.w-56]="isOpen"
+      [class.w-16]="!isOpen"
+      [class.translate-x-0]="mobileOpen"
+      [class.-translate-x-full]="!mobileOpen"
+    >
+      <a routerLink="/portal/home" (click)="closeMobile.emit()" class="m-2 flex h-12 items-center gap-2 overflow-hidden rounded-xl px-1.5 outline-none">
+        <img src="https://pbs.twimg.com/profile_images/1223279373542993920/rtXA6v2o_200x200.jpg" alt="GSR Chanka" class="h-10 w-10 min-w-10 rounded-xl object-cover p-0.5">
+        @if (isOpen) {
+          <div class="whitespace-nowrap">
+            <p class="text-xl font-bold"><span class="text-main">GSR</span>Chanka</p>
+            <p class="text-xs tracking-wider text-neutral-500">Gestión documental</p>
+          </div>
+        }
+      </a>
       <!-- Content -->
-      <div class="bg-neutral-700 h-0.5"></div>
-      <div class="flex flex-col gap-2 h-full py-3 px-2">
-        @for (section of sections; track $index) {
-          @if (!section.allowedRoles || section.allowedRoles.includes(currentUser()?.role || '')) {
-            <div>
+      <nav class="flex-1 space-y-4 overflow-y-auto px-2 py-4 md:overflow-visible">
+        @for (section of sections; track section.sectionName) {
+          @if (canViewSection(section)) {
+            <section>
+              <!-- Section Name -->
               @if (isOpen) {
-                <p class="text-neutral-400 text-xs px-2 mb-1">{{ section.sectionName }}</p>
+                <p class="mb-1 px-3 text-xxs tracking-wider text-neutral-400">{{ section.sectionName }}</p>
               } @else {
-                <div class="place-content-center h-4 mb-1">
-                  <div class="bg-neutral-600 rounded-full h-0.5"></div>
+                <div class="h-[15px] mb-1">
+                  <div class="mx-auto h-px w-8 bg-neutral-200"></div>
                 </div>
               }
-              <div class="flex flex-col gap-1">
-                @for (route of section.routes; track $index) {
-                  @if (!route.multiRoutes) {
-                    <div
-                      class="flex gap-2 cursor-pointer pl-4 pr-2 py-2 -ml-2 hover:bg-main rounded-r-full text-sm duration-300 outline-none"
-                      [routerLink]="route.route"
-                      [routerLinkActive]="['bg-main']"
-                      (click)="resetSubRoutesStatus()"
+              <!-- Routes -->
+              <div class="space-y-1">
+                @for (item of section.routes; track item.name) {
+                  @if (item.route) {
+                    <!-- Single -->
+                    <a [routerLink]="item.route" (click)="closeMobile.emit()" routerLinkActive="!bg-main !text-white"
+                      [class.px-4]="isOpen"
+                      class="group/nav relative flex h-10 font-medium items-center gap-2 rounded-xl text-sm text-neutral-500 outline-none transition hover:bg-main hover:text-white"
                     >
-                      <div class="min-w-4 max-w-4">
-                        <fa-icon [icon]="route.icon"></fa-icon>
-                      </div>
+                      <fa-icon [icon]="item.icon" class="w-5 min-w-5 text-center" [class.mx-auto]="!isOpen"></fa-icon>
                       @if (isOpen) {
-                        <p class="w-full">{{ route.name }}</p>
+                        <span class="truncate">{{ item.name }}</span>
+                      } @else {
+                        <span class="pointer-events-none absolute left-[calc(100%+0.5rem)] top-1/2 z-50 hidden -translate-y-1/2 whitespace-nowrap rounded-xl border border-neutral-200 bg-white px-4 py-2 text-xs font-medium text-neutral-700 shadow-lg group-hover/nav:block">{{ item.name }}</span>
                       }
-                    </div>
+                    </a>
                   } @else {
-                    <div
-                      class="flex gap-2 cursor-pointer pl-4 pr-2 py-2 -ml-2 hover:bg-main rounded-r-full text-sm duration-300 outline-none"
-                      [routerLink]="route.route"
-                      [routerLinkActive]="['bg-main']"
-                      (click)="route.subRoutesStatus = !route.subRoutesStatus"
-                    >
-                      <div class="min-w-4 max-w-4">
-                        <fa-icon [icon]="route.icon"></fa-icon>
-                      </div>
-                      @if (isOpen) {
-                        <p class="w-full">{{ route.name }}</p>
-                        @if (route.subroutes) {
-                          <fa-icon class="text-center w-8 duration-300" [icon]="ArrowDown" [ngClass]="{ 'rotate-180' : route.subRoutesStatus}"></fa-icon>
+                    <!-- Multi -->
+                    <div class="group/nav relative">
+                      <button type="button" class="relative flex h-10 w-full font-medium items-center gap-2 rounded-lg text-sm outline-none transition hover:bg-neutral-100"
+                        [class.px-4]="isOpen"
+                        [class.text-main]="isGroupActive(item)"
+                        [class.text-neutral-500]="!isGroupActive(item)"
+                        (click)="item.expanded = !item.expanded"
+                        [attr.aria-expanded]="item.expanded"
+                      >
+                        <fa-icon [icon]="item.icon" class="w-5 min-w-5 text-center" [class.mx-auto]="!isOpen"></fa-icon>
+                        @if (isOpen) {
+                          <span class="flex-1 truncate text-left">{{ item.name }}</span>
+                          <fa-icon [icon]="ArrowDown" class="text-xs transition-transform" [class.rotate-180]="item.expanded"></fa-icon>
                         }
-                      }
-                    </div>
-                    @if (isOpen) {
-                      @if (route.subRoutesStatus) {
-                        <div class="text-sm">
-                          @for (subroute of route.subroutes; track $index) {
-                            <div class="border-l-2 border-neutral-700 ml-3.5 pl-3 duration-200 hover:text-main hover:border-l-main h-8 flex items-center cursor-pointer" [routerLink]="subroute.route" [routerLinkActive]="['text-main', 'border-l-main']">
-                              {{ subroute.name }}
-                            </div>
+                      </button>
+                      @if (isOpen && item.expanded) {
+                        <div class="ml-5 mt-1 space-y-1 border-l border-neutral-300 relative pl-2">
+                          @for (subroute of item.subroutes; track subroute.route) {
+                            <a [routerLink]="subroute.route" (click)="closeMobile.emit()" routerLinkActive="!bg-main !text-white"
+                              class="h-8 items-center relative block rounded-xl px-4 py-2 text-xs text-neutral-500 outline-none transition before:absolute before:-left-2 before:top-1/2 before:w-2 before:border-t before:border-neutral-300 hover:bg-main hover:text-white"
+                            >
+                              <fa-icon [icon]="subroute.icon" class="w-5 min-w-5 text-center mr-2" [class.mx-auto]="!isOpen"></fa-icon>{{ subroute.name }}
+                            </a>
                           }
                         </div>
                       }
-                    }
+                      @if (!isOpen) {
+                        <div class="invisible absolute left-full top-0 z-50 w-48 translate-x-1 pl-2 opacity-0 transition group-hover/nav:visible group-hover/nav:translate-x-0 group-hover/nav:opacity-100">
+                          <div class="rounded-xl border border-neutral-200 bg-white p-2 shadow-xl">
+                            <p class="px-2 pb-2 pt-1 text-xxs tracking-wider text-neutral-400">{{ item.name }}</p>
+                            <div class="space-y-1">
+                              @for (subroute of item.subroutes; track subroute.route) {
+                                <a
+                                  [routerLink]="subroute.route"
+                                  (click)="closeMobile.emit()"
+                                  routerLinkActive="!bg-main !text-white"
+                                  class="block rounded-lg px-2 py-2 text-xs font-medium text-neutral-600 transition hover:bg-main hover:text-white"
+                                >
+                                  <fa-icon [icon]="subroute.icon" class="w-5 min-w-5 text-center mr-2" [class.mx-auto]="!isOpen"></fa-icon>{{ subroute.name }}
+                                </a>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    </div>
                   }
                 }
               </div>
-            </div>
+            </section>
           }
         }
-      </div>
-      <div class="bg-neutral-700 h-0.5"></div>
-      <!-- User -->
-      <div class="p-2">
-         <div class="flex items-center py-2 h-12 gap-2 duration-300" [ngClass]="{ 'px-2': isOpen }">
-            <div class="bg-white text-neutral-700 text-lg flex items-center justify-center min-w-8 w-8 h-8 rounded-full" [ngClass]="{ 'cursor-pointer': !isOpen }" (click)="!isOpen && (isLogOutModalOpen = true)">
-              @if (currentUser() && currentUser()!.role) {
-                @switch (currentUser()!.role) {
-                  @case ('SUPERADMIN') { <fa-icon [icon]="Super"></fa-icon> }
-                  @case ('BOSS') { <fa-icon [icon]="Boss"></fa-icon> }
-                  @case ('OPERATOR') { <fa-icon [icon]="Operator"></fa-icon> }
-                }
-              }
-            </div>
-            @if (isOpen) {
-              <div class="w-full truncate">
-                @if (currentUser()) {
-                  <div class="animate-fade-right delay-75">
-                    <p class="font-semibold text-xs -mb-1 truncate">{{ currentUser()!.displayName }}</p>
-                    <p class="text-xxs">{{ '@' + currentUser()?.username }}</p>
-                  </div>
-                }
-              </div>
-              <div class="animate-fade-right flex items-center justify-center">
-                <button (click)="isLogOutModalOpen = true" [ngClass]="{'bg-white text-neutral-800': isLogOutModalOpen}" class="hover:bg-white hover hover:text-neutral-800 duration-300 rounded-lg w-8 h-8">
-                  <fa-icon [icon]="LogOut"></fa-icon>
-                </button>
-              </div>
-            }
-        </div>
-       </div>
-    </div>
+      </nav>
+      <!-- LogOut -->
+      <button type="button" (click)="isLogOutModalOpen = true" class="hover:bg-red-500 hover:text-white px-4 my-4 flex h-10 font-medium items-center gap-2 rounded-xl text-xs text-neutral-500 outline-none transition mx-auto"
+        [class.px-2]="isOpen!"
+      >
+        <fa-icon [icon]="LogOut"></fa-icon>
+        @if (isOpen) {
+          <span class="truncate">Cerrar Sesión</span>
+        }
+      </button>
+    </aside>
 
     @if (isLogOutModalOpen) {
       <app-log-out (cancel)="isLogOutModalOpen = false"></app-log-out>
     }
   `,
-  styles: `
-    @keyframes fadeRight {
-      0% {
-        opacity: 0;
-        transform: translateX(-40px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-    .animate-fade-right {
-      animation: fadeRight 1s ease-out forwards;
-    }
-  `,
+  styles: ``,
 })
 export class SidebarComponent {
-  @Output() sidebarStatus = new EventEmitter<boolean>();
+  @Input() isOpen = true;
+  @Input() mobileOpen = false;
+  @Output() closeMobile = new EventEmitter<void>();
 
+  private router = inject(Router);
   currentUser = inject(AuthService).usuarioLogged;
-
   isLogOutModalOpen = false;
-  isOpen: boolean = true;
 
-  // Icons
   ArrowDown = faAngleDown;
-  ArrowClose = faAngleRight;
   LogOut = faArrowRightFromBracket;
-  Super = faUserShield;
-  Boss = faUserTie;
-  Operator = faUser;
 
-  // Sidebar
-  sections: {
-    sectionName: string;
-    allowedRoles?: string[];
-    routes: {
-      multiRoutes?: boolean;
-      name: string;
-      icon: IconDefinition;
-      route: string;
-      subroutes?: {
-          name: string;
-          route: string;
-      }[];
-      subRoutesStatus?: boolean;
-    }[];
-  }[] = [
+  sections: SidebarSection[] = [
     {
       sectionName: 'General',
-      routes: [
-        { name: 'Inicio', icon: faHome, route: './home' },
-      ]
+      routes: [{ name: 'Inicio', icon: faHome, route: '/portal/home' }],
     },
     {
-      sectionName: 'Admin',
+      sectionName: 'Administración',
       allowedRoles: ['SUPERADMIN'],
       routes: [
-        { name: 'Usuarios', icon: faUserShield, route: './usuarios' },
-        { name: 'Áreas', icon: faBuilding, route: './areas' },
-        { name: 'Obras', icon: faHammer, route: './obras' },
-      ]
+        { name: 'Usuarios', icon: faUserShield, route: '/portal/usuarios' },
+        {
+          name: 'Dependencias',
+          icon: faBuilding,
+          expanded: true,
+          subroutes: [
+            { name: 'Áreas', icon: faBuilding, route: '/portal/areas' },
+            { name: 'Obras', icon: faHammer, route: '/portal/obras' },
+          ],
+        },
+      ],
     },
     {
-      sectionName: 'Dashboard',
+      sectionName: 'Análisis',
       allowedRoles: ['SUPERADMIN', 'BOSS'],
-      routes: [
-        { name: 'Dashboard', icon: faHome, route: './dashboard' },
-      ]
+      routes: [{ name: 'Dashboard', icon: faChartSimple, route: '/portal/dashboard' }],
     },
     {
-      sectionName: 'Área',
+      sectionName: 'Gestión',
+      allowedRoles: ['BOSS', 'OPERATOR'],
       routes: [
-        { name: 'Documentos', icon: faFileLines, route: './documentos' },
-      ]
-    },
-    {
-      sectionName: 'Trámites',
-      routes: [
-        { name: 'Recibidos', icon: faEnvelope, route: './tramitesR' },
-        { name: 'Enviados', icon: faPaperPlane, route: './tramitesE' },
-        { name: 'Iniciados', icon: faFilePen, route: './tramitesI' },
-      ]
+        { name: 'Documentos', icon: faFileLines, route: '/portal/documentos' },
+        {
+          name: 'Trámites',
+          icon: faEnvelopeOpenText,
+          expanded: true,
+          subroutes: [
+            { name: 'Recibidos', icon: faEnvelope, route: '/portal/tramitesR' },
+            { name: 'Enviados', icon: faPaperPlane,  route: '/portal/tramitesE' },
+            { name: 'Iniciados', icon: faFilePen, route: '/portal/tramitesI' },
+          ],
+        },
+      ],
     },
   ];
 
-  resetSubRoutesStatus() {
-    this.sections.forEach(section => {
-      section.routes.forEach(route => {
-        if (route.subRoutesStatus !== undefined) {
-          route.subRoutesStatus = false;
-        }
-      });
-    });
+  canViewSection(section: SidebarSection): boolean {
+    return !section.allowedRoles || section.allowedRoles.includes(this.currentUser()?.role || '');
   }
 
-  changeSidebarStatus() {
-    this.isOpen = !this.isOpen;
-    this.sidebarStatus.emit(this.isOpen);
+  isGroupActive(item: SidebarRoute): boolean {
+    return item.subroutes?.some(subroute => this.router.url.startsWith(subroute.route)) ?? false;
   }
 }

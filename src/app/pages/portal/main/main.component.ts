@@ -1,27 +1,38 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DOCUMENT } from '@angular/common';
+import { Component, inject } from '@angular/core';
 import { SidebarComponent } from '../../../components/sidebar/sidebar.component';
 import { TopbarComponent } from '../../../components/topbar/topbar.component';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-main',
-  imports: [CommonModule, SidebarComponent, TopbarComponent, RouterOutlet],
+  imports: [SidebarComponent, TopbarComponent, RouterOutlet],
   template: `
-    <div class="flex h-screen bg-background">
-      <app-sidebar (sidebarStatus)="changeSideBarStatus($event)"></app-sidebar>
-      <div class="w-full duration-300" [ngClass]="{ 'pl-64': sidebarIsOpen, 'pl-12': !sidebarIsOpen }">
-        <app-topbar></app-topbar>
-        <router-outlet></router-outlet>
+    <div class="min-h-screen bg-background">
+      <app-sidebar [isOpen]="sidebarIsOpen"[mobileOpen]="mobileSidebarOpen" (closeMobile)="mobileSidebarOpen = false"></app-sidebar>
+      <div class="min-h-screen transition-[padding] duration-300 ease-out" [class.md:pl-56]="sidebarIsOpen" [class.md:pl-16]="!sidebarIsOpen">
+        <app-topbar [sidebarOpen]="sidebarIsOpen" (toggleSidebar)="toggleSidebar()"></app-topbar>
+        <main class="min-w-0 overflow-x-hidden">
+          <router-outlet></router-outlet>
+        </main>
       </div>
     </div>
   `,
   styles: ``,
 })
 export class MainComponent {
-  sidebarIsOpen: boolean = true;
+  private document = inject(DOCUMENT);
 
-  changeSideBarStatus(status: boolean) {
-    this.sidebarIsOpen = status;
+  sidebarIsOpen = true;
+  mobileSidebarOpen = false;
+
+  toggleSidebar(): void {
+    if (this.document.defaultView?.matchMedia('(min-width: 768px)').matches) {
+      this.sidebarIsOpen = !this.sidebarIsOpen;
+      return;
+    }
+
+    this.sidebarIsOpen = true;
+    this.mobileSidebarOpen = !this.mobileSidebarOpen;
   }
 }
