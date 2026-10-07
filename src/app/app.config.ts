@@ -5,6 +5,7 @@ import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { getFirestore, provideFirestore } from "@angular/fire/firestore";
 import { getStorage, provideStorage } from "@angular/fire/storage";
+import { provideFunctions, getFunctions } from '@angular/fire/functions';
 import { environment } from './environments';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
@@ -22,5 +23,6 @@ export const appConfig: ApplicationConfig = {
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
     provideStorage(() => getStorage()), provideClientHydration(withEventReplay()),
+    provideFunctions(() => getFunctions()),
   ],
 };
