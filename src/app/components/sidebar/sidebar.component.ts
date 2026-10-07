@@ -178,7 +178,7 @@ export class SidebarComponent {
     },
     {
       sectionName: 'Análisis',
-      allowedRoles: ['SUPERADMIN', 'BOSS'],
+      allowedRoles: ['BOSS'],
       routes: [{ name: 'Dashboard', icon: faChartSimple, route: '/portal/dashboard' }],
     },
     {

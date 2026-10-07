@@ -50,11 +50,11 @@ import { DependenciasService } from '../../services/dependencias.service';
                   <div class="max-h-96 overflow-y-auto">
                     @for (tramite of tramitesNoVistos(); track tramite.id ?? tramite.codigoTicket) {
                       <button type="button" class="flex w-full flex-col gap-1 border-b border-neutral-100 px-4 py-3 text-left transition last:border-0 hover:bg-neutral-50" (click)="openTramiteNotifications()">
-                        <span class="flex w-full items-center justify-between gap-3">
+                        <span class="flex w-full items-center justify-between gap-2">
                           <span class="truncate text-xs font-semibold text-neutral-800">{{ tramite.codigoTicket }}</span>
                           <span class="shrink-0 text-xxs text-neutral-400">{{ formatDate(tramite.trazabilidad[0]?.fechaEnvio) }}</span>
                         </span>
-                        <span class="truncate text-xs text-neutral-500">Origen: {{ getDependenciaName(tramite.trazabilidad[0].dependenciaEmisor) || 'No especificado' }}</span>
+                        <span class="truncate text-xs text-neutral-500">De: {{ getDependenciaName(tramite.trazabilidad[0].dependenciaEmisor) || 'No especificado' }}</span>
                       </button>
                     } @empty {
                       <p class="px-4 py-4 text-center text-sm text-neutral-500">No tienes notificaciones nuevas.</p>
