@@ -1,7 +1,7 @@
 import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { Tramite } from '../../interfaces/tramite';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCalendar, faCircleInfo, faCommentDots, faEnvelopeOpenText, faPaperPlane, faRotateLeft, faShareFromSquare, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faCalendar, faCircleCheck, faCircleInfo, faCommentDots, faEnvelopeOpenText, faPaperPlane, faRotateLeft, faShareFromSquare, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { DocumentosService } from '../../services/documentos.service';
 import { formatDate, NgClass } from '@angular/common';
 import { DependenciasService } from '../../services/dependencias.service';
@@ -21,11 +21,14 @@ import { DependenciasService } from '../../services/dependencias.service';
         @if (tramite) {
           <p class="text-main font-semibold text-sm">Ticket: {{ tramite.codigoTicket }}</p>
           <!-- Top -->
-          <div class="border grid grid-cols-3 gap-4 p-4 rounded-xl">
+          <div
+            class="border grid grid-cols-3 gap-4 p-4 rounded-xl"
+            [ngClass]="{'border-emerald-200 bg-emerald-50': tramite.estadoActual === 'Finalizado'}"
+          >
             <!-- 1 -->
             <div class="flex gap-2">
               <div class="bg-main/10 p-2 h-10 w-10 flex items-center justify-center text-main rounded-full">
-                <fa-icon [icon]="Info"></fa-icon>
+                @if (tramite.estadoActual === 'Finalizado') { <fa-icon [icon]="Closed"></fa-icon> } @else { <fa-icon [icon]="Info"></fa-icon> }
               </div>
               <div class="my-auto">
                 <p class="text-xs text-neutral-400">Estado</p>
@@ -48,8 +51,13 @@ import { DependenciasService } from '../../services/dependencias.service';
                 <fa-icon [icon]="Send"></fa-icon>
               </div>
               <div class="my-auto">
-                <p class="text-xs text-neutral-400">Última vez derivado</p>
-                <p class="font-semibold text-sm -mt-1">{{ getDateTransformed(tramite.trazabilidad[0].fechaEnvio) }}</p>
+                @if (tramite.estadoActual === 'Finalizado') {
+                  <p class="text-xs text-neutral-400">Finalizado</p>
+                  <p class="font-semibold text-sm -mt-1">{{ getDateTransformed(tramite.fechaCierre) }}</p>
+                } @else {
+                  <p class="text-xs text-neutral-400">Última vez derivado</p>
+                  <p class="font-semibold text-sm -mt-1">{{ getDateTransformed(tramite.trazabilidad[0].fechaEnvio) }}</p>
+                }
               </div>
             </div>
           </div>
@@ -105,8 +113,13 @@ import { DependenciasService } from '../../services/dependencias.service';
                         </div>
                         <!-- Right -->
                         <div class="text-right">
-                          <span class="font-semibold block text-gray-400 text-[10px]">Salida</span>
-                          <span class="font-semibold" [class.text-neutral-800]="mov.fechaSalida" [class.text-neutral-400]="!mov.fechaSalida">{{ getDateTransformed(mov.fechaSalida) }}</span>
+                          @if (tramite.estadoActual === 'Finalizado') {
+                            <span class="font-semibold block text-gray-400 text-[10px]">Finalizado</span>
+                            <span class="font-semibold text-neutral-800">{{ getDateTransformed(tramite.fechaCierre) }}</span>
+                          } @else {
+                            <span class="font-semibold block text-gray-400 text-[10px]">Salida</span>
+                            <span class="font-semibold" [class.text-neutral-800]="mov.fechaSalida" [class.text-neutral-400]="!mov.fechaSalida">{{ getDateTransformed(mov.fechaSalida) }}</span>
+                          }
                         </div>
                       </div>
                       <!-- Observaciones -->
@@ -181,6 +194,7 @@ export class TramiteTrackingComponent {
   Returned = faRotateLeft;
   Opened = faEnvelopeOpenText;
   Comment = faCommentDots;
+  Closed = faCircleCheck;
 
   getConfig(movimiento: any) {
     // Devuelto

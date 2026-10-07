@@ -93,6 +93,7 @@ export class DocumentoSendModalComponent {
             documentoInicial: this.documento.id!,
             documentosAdjuntos: [this.documento.id!],
             dependenciaActual: dependenciaDestino!,
+            fechaCierre: null,
             estadoActual: 'Pendiente',
             trazabilidad: [
               {

@@ -17,6 +17,7 @@ export interface Tramite {
   documentosAdjuntos: string[];
   dependenciaActual: string;
   estadoActual: 'Pendiente' | 'En Proceso' | 'Devuelto' | 'Finalizado';
+  fechaCierre?: Date | null;
   trazabilidad: Movimiento[];
   dependenciasInvolucradas: string[];
 }

@@ -14,9 +14,11 @@ export class TramitesService {
   private tramitesCollection = collection(this.firestore, 'tramites');
 
   private _tramitesRecibidos = signal<Tramite[]>([]);
+  private _tramitesRelacionados = signal<Tramite[]>([]);
   private _tramitesEnviados = signal<Tramite[]>([]);
   private _tramitesIniciados = signal<Tramite[]>([]);
   public tramitesRecibidos = this._tramitesRecibidos.asReadonly();
+  public tramitesRelacionados = this._tramitesRelacionados.asReadonly();
   public tramitesEnviados = this._tramitesEnviados.asReadonly();
   public tramitesIniciados = this._tramitesIniciados.asReadonly();
   public tramitesRecibidosNoVistos = computed(() =>
@@ -28,18 +30,30 @@ export class TramitesService {
       const dependenciaId = this.currentUser()?.dependenciaId;
       if (!dependenciaId) {
         this._tramitesRecibidos.set([]);
+        this._tramitesRelacionados.set([]);
         return;
       }
 
       const subscription = runInInjectionContext(this.injector, () => {
-        const queryRecibidos = query(this.tramitesCollection, where('dependenciaActual', '==', dependenciaId));
+        const queryRecibidos = query(this.tramitesCollection, where('dependenciaActual', '==', dependenciaId), where('estadoActual', 'in', ['Pendiente' ,'En Proceso' ,'Devuelto']));
         return collectionData(queryRecibidos, { idField: 'id' }).subscribe({
           next: (data) => this._tramitesRecibidos.set(data as Tramite[]),
           error: (err) => console.error('Error cargando recibidos', err),
         });
       });
 
-      onCleanup(() => subscription.unsubscribe());
+      const relatedSubscription = runInInjectionContext(this.injector, () => {
+        const queryRelacionados = query(this.tramitesCollection, where('dependenciasInvolucradas', 'array-contains', dependenciaId));
+        return collectionData(queryRelacionados, { idField: 'id' }).subscribe({
+          next: (data) => this._tramitesRelacionados.set(data as Tramite[]),
+          error: (err) => console.error('Error cargando trámites relacionados', err),
+        });
+      });
+
+      onCleanup(() => {
+        subscription.unsubscribe();
+        relatedSubscription.unsubscribe();
+      });
     });
   }
 

@@ -1,7 +1,7 @@
 import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faAngleDown, faArrowRightFromBracket, faBuilding, faChartSimple, faEnvelope, faEnvelopeOpenText, faFileLines, faFilePen, faHammer, faHome, faPaperPlane, faUserShield, IconDefinition } from '@fortawesome/free-solid-svg-icons';
+import { faAngleDown, faArrowRightFromBracket, faBuilding, faChartSimple, faEnvelope, faEnvelopeOpenText, faFileLines, faFilePen, faHammer, faHome, faPaperPlane, faFolderOpen, faUserShield, IconDefinition, faFolderClosed, faFolder } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../services/auth.service';
 import { LogOutComponent } from '../log-out/log-out.component';
 
@@ -194,6 +194,15 @@ export class SidebarComponent {
             { name: 'Recibidos', icon: faEnvelope, route: '/portal/tramitesR' },
             { name: 'Enviados', icon: faPaperPlane,  route: '/portal/tramitesE' },
             { name: 'Iniciados', icon: faFilePen, route: '/portal/tramitesI' },
+          ],
+        },
+        {
+          name: 'Expedientes',
+          icon: faFolderOpen,
+          expanded: true,
+          subroutes: [
+            { name: 'Cerrados aquí', icon: faFolderClosed, route: '/portal/expedientesC' },
+            { name: 'Iniciados aquí', icon: faFolder, route: '/portal/expedientesI' },
           ],
         },
       ],

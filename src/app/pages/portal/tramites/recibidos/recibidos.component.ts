@@ -2,14 +2,15 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { BreadcrumbComponent } from '../../../../components/breadcrumb/breadcrumb.component';
 import { TableComponent } from '../../../../components/table/table.component';
 import { TramitesService } from '../../../../services/tramites.service';
-import { faFolderOpen, faShareFromSquare } from '@fortawesome/free-solid-svg-icons';
+import { faFolderOpen, faShareFromSquare, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { Tramite } from '../../../../interfaces/tramite';
 import { TramiteDerivarComponent } from '../../../../components/tramite-derivar/tramite-derivar.component';
 import { TramiteAdjuntarComponent } from '../../../../components/tramite-adjuntar/tramite-adjuntar.component';
+import { TramiteFinalizarComponent } from '../../../../components/tramite-finalizar/tramite-finalizar.component';
 
 @Component({
   selector: 'app-recibidos',
-  imports: [BreadcrumbComponent, TableComponent, TramiteDerivarComponent, TramiteAdjuntarComponent],
+  imports: [BreadcrumbComponent, TableComponent, TramiteDerivarComponent, TramiteAdjuntarComponent, TramiteFinalizarComponent],
   template: `
     <div class="flex flex-col gap-4 p-8 select-none">
       <!-- Top -->
@@ -42,6 +43,12 @@ import { TramiteAdjuntarComponent } from '../../../../components/tramite-adjunta
         (close)="isTramitesSendOpen.set(false)"
       ></app-tramite-derivar>
     }
+    @if (isFinalizeModalOpen()) {
+      <app-tramite-finalizar
+        [tramite]="selectedTramite()"
+        (close)="isFinalizeModalOpen.set(false)"
+      ></app-tramite-finalizar>
+    }
   `,
   styles: ``,
 })
@@ -73,11 +80,13 @@ export class RecibidosComponent {
   tableActions = [
     { action: 'files', icon: faFolderOpen, color: 'text-amber-500', title: 'Adjuntar'},
     { action: 'send', icon: faShareFromSquare, color: 'text-green-600', title: 'Derivar'},
+    { action: 'finalize', icon: faCheck, color: 'text-main', title: 'Finalizar'},
   ]
 
   // Modals
   isTramitesFilesOpen = signal(false);
   isTramitesSendOpen = signal(false);
+  isFinalizeModalOpen = signal(false);
   selectedTramite = signal<Tramite | null>(null);
 
   handleAction({action, item}: { action: string; item: any }) {
@@ -87,6 +96,9 @@ export class RecibidosComponent {
         break;
       case 'send':
         this.onSend(item);
+        break;
+      case 'finalize':
+        this.onFinalize(item);
         break;
     }
   }
@@ -101,6 +113,12 @@ export class RecibidosComponent {
     this.isTramiteRecieved(tramite);
     this.selectedTramite.set(tramite);
     this.isTramitesSendOpen.set(true);
+  }
+
+  onFinalize(tramite: Tramite) {
+    this.isTramiteRecieved(tramite);
+    this.selectedTramite.set(tramite);
+    this.isFinalizeModalOpen.set(true);
   }
 
   isTramiteRecieved(tramite: Tramite) {
