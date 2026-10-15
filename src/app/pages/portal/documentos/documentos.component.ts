@@ -85,9 +85,9 @@ export class DocumentosComponent {
   ];
   tableActions = [
     { action: 'download', icon: faDownload, color: 'text-sky-600', title: 'Descargar' },
-    { action: 'edit', icon: faEdit, color: 'text-amber-400', title: 'Editar', ownership: true },
-    { action: 'delete', icon: faTrash, color: 'text-red-600', title: 'Eliminar', ownership: true },
-    { action: 'send', icon: faPaperPlane, color: 'text-green-600', title: 'Enviar' },
+    { action: 'edit', icon: faEdit, color: 'text-amber-400', title: 'Editar', ownership: true, hiddenWhen: ['enExpediente'] },
+    { action: 'delete', icon: faTrash, color: 'text-red-600', title: 'Eliminar', ownership: true, hiddenWhen: ['enTramite', 'enExpediente'] },
+    { action: 'send', icon: faPaperPlane, color: 'text-green-600', title: 'Enviar', hiddenWhen: ['enTramite', 'enExpediente'] },
   ];
 
   // Modals
@@ -131,25 +131,38 @@ export class DocumentosComponent {
   }
 
   onEdit(documento: Documento) {
+    if (documento.enExpediente) return;
     this.selectedDocumento.set(documento);
     this.isDocumentoModalOpen.set(true);
   }
 
   onDelete(documento: Documento) {
+    if (documento.enTramite || documento.enExpediente) return;
     this.selectedDocumento.set(documento);
     this.isConfirmOpen.set(true);
   }
 
   onSend(documento: Documento) {
+    if (documento.enTramite || documento.enExpediente) return;
     this.selectedDocumento.set(documento);
     this.isDocumentoSendOpen.set(true);
   }
 
-  confirmDelete() {
-    if (this.selectedDocumento()?.id) {
-      this.dependenciasService.changeTotal(this.selectedDocumento()!.adjuntadoPorDependencia, -1);
-      this.documentosService.deleteFile(this.selectedDocumento()!.archivo.ruta);
-      this.documentosService.deleteDocumento(this.selectedDocumento()!.id!);
+  async confirmDelete() {
+    const documento = this.selectedDocumento();
+    if (!documento?.id) return;
+    if (documento.enTramite || documento.enExpediente) {
+      alert('No se puede eliminar un documento asociado a un trámite o expediente.');
+      this.isConfirmOpen.set(false);
+      return;
+    }
+
+    try {
+      await this.documentosService.deleteDocumento(documento.id);
+      await this.documentosService.deleteFile(documento.archivo.ruta);
+      this.dependenciasService.changeTotal(documento.adjuntadoPorDependencia, -1);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'No se pudo eliminar el documento.');
     }
     this.isConfirmOpen.set(false);
   }

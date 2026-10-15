@@ -1,5 +1,5 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { addDoc, collection, collectionData, Firestore, query, where } from '@angular/fire/firestore';
+import { collection, collectionData, doc, Firestore, query, runTransaction, where } from '@angular/fire/firestore';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Expediente } from '../interfaces/expediente';
 import { Tramite } from '../interfaces/tramite';
@@ -33,19 +33,43 @@ export class ExpedientesService {
   }
 
   public async cerrarTramite(tramite: Tramite) {
+    if (!tramite.id) throw new Error('No se puede cerrar un trámite sin identificador.');
+    const documentoIds = Array.from(new Set([tramite.documentoInicial, ...(tramite.documentosAdjuntos || [])]));
+    const tramiteRef = doc(this.firestore, `tramites/${tramite.id}`);
+    const expedienteRef = doc(this.expedientesCollection);
+    const documentoRefs = documentoIds.map(id => doc(this.firestore, `documentos/${id}`));
+    const fechaCierre = new Date();
+
     const expediente: Expediente = {
-      tramiteId: tramite.id!,
+      tramiteId: tramite.id,
       codigoTicket: tramite.codigoTicket,
       dependenciaOrigen: tramite.dependenciaOrigen,
       dependenciaFinal: this.currentUser()!.dependenciaId,
-      fechaCierre: new Date(),
+      fechaCierre,
       usuarioCierre: this.currentUser()!.displayName,
       documentoInicial: tramite.documentoInicial,
-      documentosAdjuntos: tramite.documentosAdjuntos || [],
+      documentosAdjuntos: documentoIds,
       dependenciasInvolucradas: tramite.dependenciasInvolucradas,
       trazabilidad: tramite.trazabilidad || [],
     };
 
-    await addDoc(this.expedientesCollection, expediente);
+    await runTransaction(this.firestore, async transaction => {
+      const tramiteSnapshot = await transaction.get(tramiteRef);
+      if (!tramiteSnapshot.exists()) throw new Error('El trámite ya no existe.');
+      if ((tramiteSnapshot.data() as Tramite).estadoActual === 'Finalizado') {
+        throw new Error('Este trámite ya fue finalizado.');
+      }
+
+      const documentoSnapshots = await Promise.all(documentoRefs.map(reference => transaction.get(reference)));
+      if (documentoSnapshots.some(snapshot => !snapshot.exists())) {
+        throw new Error('No se pudo cerrar el trámite porque falta uno de sus documentos.');
+      }
+
+      transaction.update(tramiteRef, { estadoActual: 'Finalizado', fechaCierre });
+      transaction.set(expedienteRef, expediente);
+      for (const documentoRef of documentoRefs) {
+        transaction.update(documentoRef, { enTramite: true, enExpediente: true });
+      }
+    });
   }
 }

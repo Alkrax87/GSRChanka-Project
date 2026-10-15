@@ -119,8 +119,8 @@ import { DocumentosService } from '../../services/documentos.service';
               <td class="whitespace-nowrap border-b border-neutral-100 px-3 py-2">
                 <div class="flex items-center justify-center gap-1.5">
                   @for (btn of actions; track btn.action) {
-                    @if (!btn.ownership || currentUser()?.uid === getNestedValue(row, 'propietario.ownerId')) {
-                      <button type="button" (click)="action.emit({ action: btn.action, item: row })" [class]="btn.color + ' rounded-lg p-2 outline-none transition hover:bg-neutral-100 focus-visible:ring-2 focus-visible:ring-main'" [attr.aria-label]="btn.title" [title]="btn.title">
+                    @if (isActionVisible(btn, row)) {
+                      <button type="button" (click)="action.emit({ action: btn.action, item: row })" [class]="btn.color + ' rounded-lg p-2 outline-none transition hover:bg-neutral-100 focus-visible:ring-2 focus-visible:ring-main'" [title]="btn.title">
                         <fa-icon [icon]="btn.icon" class="text-sm"></fa-icon>
                       </button>
                     }
@@ -182,7 +182,7 @@ export class TableComponent {
     isNew?: boolean,
   }[] = [];
   @Input() data: any[] = [];
-  @Input() actions: { action: string; icon: IconDefinition; color: string; title: string, ownership?: boolean }[] = [];
+  @Input() actions: { action: string; icon: IconDefinition; color: string; title: string, ownership?: boolean; hiddenWhen?: string[] }[] = [];
   @Output() action = new EventEmitter<{ action: string; item: any }>();
 
   dependencias = inject(DependenciasService).dependencias;
@@ -252,6 +252,12 @@ export class TableComponent {
 
       return acc[part];
     }, obj);
+  }
+
+  isActionVisible(action: { ownership?: boolean; hiddenWhen?: string[] }, row: any): boolean {
+    const ownsRecord = !action.ownership || this.currentUser()?.uid === this.getNestedValue(row, 'propietario.ownerId');
+    const isHidden = action.hiddenWhen?.some(field => Boolean(this.getNestedValue(row, field))) ?? false;
+    return ownsRecord && !isHidden;
   }
 
   getDateTransformed(value: unknown): string {

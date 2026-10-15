@@ -83,7 +83,7 @@ export class TramiteAdjuntarComponent {
   isSaving = false;
 
   documentosFiltrados = computed(() => {
-    return this.documentos().filter(doc => !this.tramite?.documentosAdjuntos.includes(doc.id!));
+    return this.documentos().filter(doc => !doc.enTramite && !doc.enExpediente && !this.tramite?.documentosAdjuntos.includes(doc.id!));
   });
 
   form = this.fb.group({
@@ -113,18 +113,12 @@ export class TramiteAdjuntarComponent {
       this.isSaving = true;
       const docSeleccionado = this.form.value.documentoId!;
 
-      const nuevosAdjuntos = [...this.tramite.documentosAdjuntos, docSeleccionado];
-
-      this.tramitesService.updateTramite(this.tramite.id!, { documentosAdjuntos: nuevosAdjuntos }).then(() => {
+      this.tramitesService.adjuntarDocumento(this.tramite.id!, docSeleccionado).then(() => {
         alert('Documento adjuntado exitosamente al trámite.');
-        // Actualizamos el estado local para que la UI reaccione inmediatamente
-        // this.tramite.documentosAdjuntos = nuevosAdjuntos;
-        // this.form.reset();
-        // this.cargarDocumentosAdjuntos(); // Recargamos la lista visual
         this.isSaving = false;
         this.close.emit();
       }).catch((error) => {
-        alert(error);
+        alert(error instanceof Error ? error.message : 'No se pudo adjuntar el documento.');
         this.isSaving = false;
       });
     }

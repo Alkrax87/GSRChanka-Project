@@ -1,5 +1,5 @@
 import { computed, inject, Injectable } from '@angular/core';
-import { addDoc, collection, collectionData, deleteDoc, doc, documentId, Firestore, query, updateDoc, where } from '@angular/fire/firestore';
+import { addDoc, collection, collectionData, doc, documentId, Firestore, query, runTransaction, where } from '@angular/fire/firestore';
 import { Observable, of, switchMap } from 'rxjs';
 import { Documento } from '../interfaces/documento';
 import { AuthService } from './auth.service';
@@ -64,11 +64,23 @@ export class DocumentosService {
 
   public updateDocumento(id: string, documento: Partial<Documento>) {
     const documentoDoc = doc(this.firestore, `documentos/${id}`);
-    return updateDoc(documentoDoc, documento);
+    return runTransaction(this.firestore, async transaction => {
+      const snapshot = await transaction.get(documentoDoc);
+      if (!snapshot.exists()) throw new Error('El documento ya no existe.');
+      if (snapshot.data()['enExpediente']) throw new Error('No se puede editar un documento que pertenece a un expediente.');
+      transaction.update(documentoDoc, documento);
+    });
   }
 
-  public deleteDocumento(id: string) {
+  public async deleteDocumento(id: string) {
     const documentoDoc = doc(this.firestore, `documentos/${id}`);
-    return deleteDoc(documentoDoc);
+    await runTransaction(this.firestore, async transaction => {
+      const snapshot = await transaction.get(documentoDoc);
+      if (!snapshot.exists()) throw new Error('El documento ya no existe.');
+      if (snapshot.data()['enTramite'] || snapshot.data()['enExpediente']) {
+        throw new Error('No se puede eliminar un documento asociado a un trámite o expediente.');
+      }
+      transaction.delete(documentoDoc);
+    });
   }
 }

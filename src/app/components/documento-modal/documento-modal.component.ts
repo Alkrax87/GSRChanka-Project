@@ -139,6 +139,11 @@ export class DocumentoModalComponent {
   async onSubmit() {
     if (this.form.invalid || this.isSaving) return;
 
+    if (this.documento?.enExpediente) {
+      alert('No se puede editar un documento que pertenece a un expediente.');
+      return;
+    }
+
     if (!this.documento && !this.selectedFile) {
       alert('Debes seleccionar un archivo para crear un documento nuevo.');
       return;
@@ -177,6 +182,8 @@ export class DocumentoModalComponent {
             codigo: 'INFORME N°' + (userData.data()['contador'] + 1).toString().padStart(4, '0') + '-' + new Date().getFullYear() + '/' + userData.data()['abreviatura'],
             asunto: formValues.asunto!,
             tipo: formValues.tipo!,
+            enTramite: false,
+            enExpediente: false,
             adjuntadoPorDependencia: userData.data()['dependenciaId'],
             propietario: {
               persona: userData.data()['nombres'] + ' ' + userData.data()['apellidos'],

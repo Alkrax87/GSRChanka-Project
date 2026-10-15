@@ -3,6 +3,8 @@ export interface Documento {
   codigo: string;
   asunto: string;
   tipo: string;
+  enTramite: boolean;
+  enExpediente: boolean;
   adjuntadoPorDependencia: string;
   propietario: {
     persona: string;

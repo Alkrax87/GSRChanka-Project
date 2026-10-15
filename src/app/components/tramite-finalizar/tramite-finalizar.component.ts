@@ -3,7 +3,6 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { Tramite } from '../../interfaces/tramite';
 import { ExpedientesService } from '../../services/expedientes.service';
-import { TramitesService } from '../../services/tramites.service';
 
 @Component({
   selector: 'app-tramite-finalizar',
@@ -34,7 +33,6 @@ export class TramiteFinalizarComponent {
   @Input() tramite: Tramite | null = null;
   @Output() close = new EventEmitter<void>();
 
-  private tramitesService = inject(TramitesService);
   private expedientesService = inject(ExpedientesService);
   isSaving = false;
 
@@ -47,8 +45,6 @@ export class TramiteFinalizarComponent {
     this.isSaving = true;
 
     try {
-      const fechaCierre = new Date();
-      await this.tramitesService.updateTramite( this.tramite.id!, { estadoActual: 'Finalizado', fechaCierre });
       await this.expedientesService.cerrarTramite(this.tramite);
       alert('Trámite finalizado y expediente creado correctamente.');
       this.close.emit();

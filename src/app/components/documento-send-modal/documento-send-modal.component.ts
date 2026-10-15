@@ -78,8 +78,12 @@ export class DocumentoSendModalComponent {
     return `TR-${year}${month}${day}-${random}`;
   }
 
-  onSubmit() {
-    if (this.form.valid) {
+  async onSubmit() {
+    if (this.form.valid && !this.isSaving) {
+      if (this.documento?.enTramite || this.documento?.enExpediente) {
+        alert('Este documento ya está asociado a un trámite o expediente.');
+        return;
+      }
       this.isSaving = true;
       const dependenciaDestino = this.form.value.dependenciaId;
 
@@ -109,14 +113,13 @@ export class DocumentoSendModalComponent {
             dependenciasInvolucradas: [this.currentUser()!.dependenciaId, dependenciaDestino]
           }
 
-          this.tramitesService.addTramite(tramiteNuevo).then(() => {
-            alert(`Nuevo trámite creado correctamente.\nTicket: ${nuevoTicket}`);
-            this.isSaving = false;
-            this.close.emit();
-          });
+          await this.tramitesService.iniciarTramiteConDocumento(tramiteNuevo, this.documento.id!);
+          alert(`Nuevo trámite creado correctamente.\nTicket: ${nuevoTicket}`);
+          this.close.emit();
         }
       } catch (error) {
-        alert(error);
+        alert(error instanceof Error ? error.message : 'No se pudo iniciar el trámite.');
+      } finally {
         this.isSaving = false;
       }
     } else {

@@ -1,5 +1,5 @@
 import { computed, effect, inject, Injectable, Injector, runInInjectionContext, signal } from '@angular/core';
-import { addDoc, collection, collectionData, deleteDoc, doc, Firestore, query, updateDoc, where } from '@angular/fire/firestore';
+import { collection, collectionData, deleteDoc, doc, Firestore, query, runTransaction, updateDoc, where } from '@angular/fire/firestore';
 import { Tramite } from '../interfaces/tramite';
 import { AuthService } from './auth.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -76,8 +76,44 @@ export class TramitesService {
     });
   }
 
-  public addTramite(tramite: Tramite) {
-    return addDoc(this.tramitesCollection, tramite);
+  public async iniciarTramiteConDocumento(tramite: Tramite, documentoId: string) {
+    const documentoRef = doc(this.firestore, `documentos/${documentoId}`);
+    const tramiteRef = doc(this.tramitesCollection);
+
+    await runTransaction(this.firestore, async (transaction) => {
+      const documentoSnapshot = await transaction.get(documentoRef);
+      if (!documentoSnapshot.exists()) throw new Error('El documento ya no existe.');
+
+      const documento = documentoSnapshot.data();
+      if (documento['enTramite'] || documento['enExpediente']) {
+        throw new Error('Este documento ya está asociado a un trámite o expediente.');
+      }
+
+      transaction.set(tramiteRef, tramite);
+      transaction.update(documentoRef, { enTramite: true });
+    });
+  }
+
+  public async adjuntarDocumento(tramiteId: string, documentoId: string) {
+    const tramiteRef = doc(this.firestore, `tramites/${tramiteId}`);
+    const documentoRef = doc(this.firestore, `documentos/${documentoId}`);
+
+    await runTransaction(this.firestore, async (transaction) => {
+      const [tramiteSnapshot, documentoSnapshot] = await Promise.all([transaction.get(tramiteRef), transaction.get(documentoRef)]);
+      if (!tramiteSnapshot.exists()) throw new Error('El trámite ya no existe.');
+      if (!documentoSnapshot.exists()) throw new Error('El documento ya no existe.');
+
+      const tramite = tramiteSnapshot.data() as Tramite;
+      const documento = documentoSnapshot.data();
+      if (tramite.estadoActual === 'Finalizado') throw new Error('No se pueden adjuntar documentos a un trámite finalizado.');
+      if (documento['enTramite'] || documento['enExpediente']) {
+        throw new Error('Este documento ya está asociado a un trámite o expediente.');
+      }
+      if (tramite.documentosAdjuntos.includes(documentoId)) throw new Error('Este documento ya está adjunto al trámite.');
+
+      transaction.update(tramiteRef, { documentosAdjuntos: [...tramite.documentosAdjuntos, documentoId] });
+      transaction.update(documentoRef, { enTramite: true });
+    });
   }
 
   public updateTramite(id: string, tramite: Partial<Tramite>) {
