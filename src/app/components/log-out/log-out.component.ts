@@ -1,23 +1,26 @@
 import { Component, EventEmitter, inject, Output } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
-import { faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRightFromBracket, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'app-log-out',
   imports: [FontAwesomeModule],
   template: `
-    <div class="bg-black bg-opacity-70 fixed inset-0 z-50 flex justify-center items-center select-none">
-      <div class="bg-white p-5 rounded-xl w-full max-w-md">
-        <h3 class="text-lg font-semibold">
+    <div class="modal">
+      <div class="card-modal w-96">
+        <div class="flex justify-between">
+          <h2 class="card-title">Cerrar Sesión</h2>
+          <div class="flex items-center cursor-pointer hover:text-neutral-600" (click)="cancel.emit()">
+            <fa-icon [icon]="X"></fa-icon>
+          </div>
+        </div>
+        <p class="text-neutral-500 text-center text-sm">
           ¿Estás seguro que quieres cerrar sesión?
-        </h3>
-        <p class="text-neutral-500 text-sm mt-2 mb-4">
-          Tu sesión se cerrará y volverás a la página de inicio.
         </p>
-        <div class="flex justify-end gap-2">
-          <button (click)="onCancel()" class="bg-neutral-100 hover:bg-neutral-200/75 px-4 py-2 rounded-full">Cancelar</button>
-          <button (click)="onLogOut()" class="bg-main hover:bg-main-hover text-white flex items-center gap-2 px-4 py-2 rounded-full">
+        <div class="flex justify-center gap-2">
+          <button (click)="cancel.emit()" class="btn btn-cancel">Cancelar</button>
+          <button (click)="onLogOut()" class="btn bg-red-600 hover:bg-red-500 text-white">
             <fa-icon [icon]="LogOut"></fa-icon> Cerrar Sesión
           </button>
         </div>
@@ -32,8 +35,7 @@ export class LogOutComponent {
   private authService = inject(AuthService);
 
   LogOut = faArrowRightFromBracket;
-
-  onCancel() { this.cancel.emit() }
+  X = faTimes;
 
   onLogOut() { this.authService.logOut() }
 }
