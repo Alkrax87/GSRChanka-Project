@@ -12,147 +12,126 @@ import { DocumentosService } from '../../services/documentos.service';
   selector: 'app-table',
   imports: [NgClass, FaIconComponent],
   template: `
-    <!-- Seach and Selector -->
-    <div class="flex justify-between">
+    <!-- Search and page size -->
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <!-- Search -->
-      <div class="relative w-full md:w-1/2 lg:w-1/3 group">
-        <fa-icon [icon]="Search" class="absolute left-3 top-1/2 group-hover:text-main/50 -translate-y-1/2 text-neutral-400"></fa-icon>
+      <label class="group relative w-full sm:max-w-sm">
+        <span class="sr-only">Buscar en la tabla</span>
+        <fa-icon [icon]="Search" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 transition group-focus-within:text-main"></fa-icon>
         <input
           type="text"
-          placeholder="Buscar..."
+          placeholder="Buscar en los registros..."
           [value]="searchTerm"
           (input)="onSearch($event)"
-          class="group-hover:border-main/50 border-2 w-full rounded-2xl pl-10 pr-4 py-2 outline-none focus:border-main/50 focus:text-main"
+          class="h-10 w-full rounded-xl border border-neutral-200 bg-white pl-10 pr-4 text-sm text-neutral-700 shadow-sm outline-none transition placeholder:text-neutral-400 hover:border-neutral-300 focus:border-main focus:ring-2 focus:ring-main/15"
         >
-      </div>
+      </label>
       <!-- Items -->
-      <div class="flex items-center gap-2">
-        <p class="text-neutral-400 text-sm">Elementos por página:</p>
+      <label class="flex items-center justify-between gap-3 text-xs font-medium text-neutral-500 sm:justify-start sm:text-sm">
+        <span>Filas por página</span>
         <select
           [value]="pageSize"
           (change)="onPageSizeChange($event)"
-          class="bg-white hover:border-main/50 focus:border-main/50 border-2 text-main text-end text-sm px-3 py-1 rounded-2xl cursor-pointer outline-none"
+          aria-label="Filas por página"
+          class="h-10 rounded-xl border border-neutral-200 bg-white px-3 text-sm text-neutral-700 shadow-sm outline-none transition hover:border-neutral-300 focus:border-main focus:ring-2 focus:ring-main/15"
         >
-          <option class="text-start" value="20">20</option>
-          <option class="text-start" value="50">50</option>
-          <option class="text-start" value="100">100</option>
-          <option class="text-start" value="200">200</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
         </select>
-      </div>
+      </label>
     </div>
 
     <!-- Table -->
-    <div class="my-6 overflow-auto">
-      <table class="w-full">
-        <thead class="">
-          <tr class="bg-main text-white h-8 text-sm">
-            <th class="max-w-8 w-8 rounded-l-lg"></th>
+    <div class="my-4 overflow-x-auto rounded-xl border border-neutral-100 sm:my-6">
+      <table class="w-full min-w-[48rem] border-separate border-spacing-0 text-left">
+        <thead>
+          <tr class="h-11 bg-main text-xs font-semibold uppercase tracking-wide text-white sm:text-sm">
+            <th scope="col" class="w-12 rounded-tl-xl px-3 text-center" aria-label="Número de fila">#</th>
             @for (header of tableConstructor; track $index) {
-              <th (click)="sortData(header.key)" class="cursor-pointer text-start" [ngClass]="{ 'pr-2': $index === 0, 'pl-2': $index === tableConstructor.length - 1, 'p-2': $index != 0 && $index < tableConstructor.length - 1 }">
-                {{ header.label }}
-                @if (sortColumn === header.key) {
-                  @if (sortDirection === 'asc') {
-                    <fa-icon class="text-sm m-0.5" [icon]="Ascendent"></fa-icon>
-                  } @else {
-                    <fa-icon class="text-sm m-0.5" [icon]="Descendent"></fa-icon>
+              <th scope="col" class="px-3 py-2 text-left" [attr.aria-sort]="sortColumn === header.key ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'">
+                <button type="button" class="inline-flex items-center gap-1 rounded-md text-left outline-none transition hover:text-white/80 focus-visible:ring-2 focus-visible:ring-white" (click)="sortData(header.key)" [attr.aria-label]="'Ordenar por ' + header.label">
+                  {{ header.label }}
+                  @if (sortColumn === header.key) {
+                    <fa-icon class="text-xs" [icon]="sortDirection === 'asc' ? Ascendent : Descendent"></fa-icon>
                   }
-                }
+                </button>
               </th>
             }
-            <th class="rounded-r-lg">Opciones</th>
+            <th scope="col" class="rounded-tr-xl px-3 py-2 text-center">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          @for (row of paginatedData; track $index) {
-            <tr class="h-10 text-sm group">
-              <td class="font-bold text-neutral-500 text-xxs max-w-10 text-center group-hover:bg-main/10 rounded-l-lg">{{ $index + 1 }}.</td>
+          @for (row of paginatedData; track getRowKey(row, $index)) {
+            <tr class="group text-sm transition-colors hover:bg-main/[0.04]">
+              <td class="whitespace-nowrap border-b border-neutral-100 px-3 py-3 text-center text-xxs font-semibold text-neutral-400">{{ startRecord + $index + 1 }}</td>
               @for (header of tableConstructor; track $index) {
-                <td class="group-hover:bg-main/10 text-sm" [ngClass]="{ 'pr-2': $index === 0, 'pl-2': $index === tableConstructor.length - 1, 'p-2': $index != 0 && $index < tableConstructor.length - 1 }">
+                <td class="max-w-64 overflow-hidden text-ellipsis whitespace-nowrap border-b border-neutral-100 px-3 py-3 text-sm text-neutral-700" [title]="getCellText(row, header)">
                   @if (header.isDate) {
-                    <span class="font-semibold text-xs text-neutral-400">
+                    <span class="text-xs font-medium text-neutral-500">
                       {{ getDateTransformed(getNestedValue(row, header.key)) }}
                     </span>
                   } @else if (header.isId) {
-                    <span class="font-semibold text-xs text-neutral-400">
+                    <span class="text-xs font-semibold text-neutral-600">
                       {{ getNestedValue(row, header.key) }}
                     </span>
                   } @else if (header.isNew) {
                     @if (getNestedValue(row, header.key) === 'Nuevo') {
-                      <span class="bg-yellow-400 text-white badge">¡ {{ getNestedValue(row, header.key) }} !</span>
+                      <span class="badge bg-amber-100 text-amber-800">Nuevo</span>
                     } @else {
-                      <span class="bg-neutral-200 text-black badge">{{ getNestedValue(row, header.key) }}</span>
+                      <span class="badge bg-sky-100 text-sky-700">{{ getNestedValue(row, header.key) || 'Visto' }}</span>
                     }
                   } @else if (header.isDependencia) {
-                    <span>{{ getDependenciaName(getNestedValue(row, header.key)) }}</span>
+                    <span>{{ getDependenciaName(getNestedValue(row, header.key)) || '-' }}</span>
                   } @else if (header.isDocumento) {
-                    <span>{{ getDocumentoName(getNestedValue(row, header.key)) }}</span>
+                    <span>{{ getDocumentoName(getNestedValue(row, header.key)) || '-' }}</span>
                   } @else if (header.isFormat) {
-                    @switch (getNestedValue(row, header.key).split('/')[1]) {
-                      @case ('pdf') {
-                        <span class="bg-[#E30809] text-white badge">PDF</span>
-                      }
-                      @case ('msword') {
-                        <span class="bg-[#205FC0] text-white badge">Word</span>
-                      }
-                      @case ('vnd.openxmlformats-officedocument.wordprocessingml.document') {
-                        <span class="bg-[#205FC0] text-white badge">Word</span>
-                      }
-                      @case ('vnd.ms-excel') {
-                        <span class="bg-[#097640] text-white badge">Excel</span>
-                      }
-                      @case ('vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
-                        <span class="bg-[#097640] text-white badge">Excel</span>
-                      }
-                      @case ('vnd.ms-powerpoint') {
-                        <span class="bg-[#F14B28] text-white badge">PowerPoint</span>
-                      }
-                      @case ('vnd.openxmlformats-officedocument.presentationml.presentation') {
-                        <span class="bg-[#F14B28] text-white badge">PowerPoint</span>
-                      }
-                    }
+                    <span class="badge bg-neutral-100 text-neutral-600">{{ getFormatLabel(getNestedValue(row, header.key)) }}</span>
                   } @else if (header.isSize) {
-                    <span class="bg-neutral-100 badge">
-                      <fa-icon class="text-neutral-600" [icon]="Document"></fa-icon>&nbsp; {{ (getNestedValue(row, header.key) / 1024 / 1024).toFixed(2) }} MB
+                    <span class="badge bg-neutral-100 text-neutral-600">
+                      <fa-icon class="text-neutral-500" [icon]="Document"></fa-icon>{{ formatFileSize(getNestedValue(row, header.key)) }}
                     </span>
                   } @else if (header.isRole) {
                     @switch (getNestedValue(row, header.key)) {
                       @case ('SUPERADMIN') {
-                        <span class="bg-red-600 text-white badge">
-                          <fa-icon [icon]="Super"></fa-icon>&nbsp; ADMIN
+                        <span class="badge bg-rose-100 text-rose-700">
+                          <fa-icon [icon]="Super"></fa-icon>ADMIN
                         </span>
                       }
                       @case ('BOSS') {
-                        <span class="bg-sky-700 text-white badge">
-                          <fa-icon [icon]="Boss"></fa-icon>&nbsp; JEFE
+                        <span class="badge bg-sky-100 text-sky-700">
+                          <fa-icon [icon]="Boss"></fa-icon>JEFE
                         </span>
                       }
                       @case ('OPERATOR') {
-                        <span class="bg-teal-600 text-white badge">
-                          <fa-icon [icon]="Operator"></fa-icon>&nbsp; ASISTENTE
+                        <span class="badge bg-emerald-100 text-emerald-700">
+                          <fa-icon [icon]="Operator"></fa-icon>ASISTENTE
                         </span>
                       }
+                      @default { <span>{{ getNestedValue(row, header.key) || '-' }}</span> }
                     }
                   } @else {
-                    {{ getNestedValue(row, header.key) || '-' }}
+                    {{ displayValue(getNestedValue(row, header.key)) }}
                   }
                 </td>
               }
-              <td class="group-hover:bg-main/10 rounded-r-lg">
-                <div class="flex items-center justify-center text-base gap-2">
-                  @for (btn of actions; track $index) {
-                    @if (btn.ownership) {
-                      @if (currentUser === getNestedValue(row, 'propietario.ownerId')) {
-                        <button (click)="action.emit({ action: btn.action, item: row })" [class]="btn.color" [title]="btn.title">
-                          <fa-icon [icon]="btn.icon"></fa-icon>
-                        </button>
-                      }
-                    } @else {
-                      <button (click)="action.emit({ action: btn.action, item: row })" [class]="btn.color" [title]="btn.title">
-                        <fa-icon [icon]="btn.icon"></fa-icon>
+              <td class="whitespace-nowrap border-b border-neutral-100 px-3 py-2">
+                <div class="flex items-center justify-center gap-1.5">
+                  @for (btn of actions; track btn.action) {
+                    @if (!btn.ownership || currentUser()?.uid === getNestedValue(row, 'propietario.ownerId')) {
+                      <button type="button" (click)="action.emit({ action: btn.action, item: row })" [class]="btn.color + ' rounded-lg p-2 outline-none transition hover:bg-neutral-100 focus-visible:ring-2 focus-visible:ring-main'" [attr.aria-label]="btn.title" [title]="btn.title">
+                        <fa-icon [icon]="btn.icon" class="text-sm"></fa-icon>
                       </button>
                     }
                   }
                 </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td [attr.colspan]="tableConstructor.length + 2" class="px-4 py-10 text-center text-sm text-neutral-500">
+                {{ searchTerm.trim() ? 'No se encontraron registros que coincidan con la búsqueda.' : 'No hay registros para mostrar.' }}
               </td>
             </tr>
           }
@@ -161,30 +140,30 @@ import { DocumentosService } from '../../services/documentos.service';
     </div>
 
     <!-- Pagination -->
-    <div class="flex items-center justify-between gap-2">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <!-- All -->
-      <div class="text-neutral-400 text-xs">
-        Mostrando &nbsp; {{ startRecord + 1 }} &nbsp;a&nbsp; {{ endRecord }} &nbsp;de&nbsp; {{ filteredData.length }} &nbsp; registros
+      <div class="text-xs text-neutral-500" aria-live="polite">
+        Mostrando {{ filteredData.length ? startRecord + 1 : 0 }}–{{ endRecord }} de {{ filteredData.length }} registros
       </div>
       <!-- Paginate -->
-      <div class="flex gap-2">
+      <nav class="flex items-center justify-center gap-1 sm:justify-end" aria-label="Paginación de la tabla">
         <!-- Previous -->
-         <button (click)="prevPage()" [disabled]="currentPage === 1" [ngClass]="{'bg-neutral-200 hover:bg-neutral-200': currentPage === 1}" class="bg-main hover:bg-main-hover w-7 h-7 text-white rounded-full font-semibold text-sm">
-          <fa-icon class="text-sm" [icon]="Previous"></fa-icon>
+        <button type="button" (click)="prevPage()" [disabled]="currentPage === 1" aria-label="Página anterior" class="flex h-9 w-9 items-center justify-center rounded-xl text-neutral-600 outline-none transition hover:bg-neutral-100 focus-visible:ring-2 focus-visible:ring-main disabled:cursor-not-allowed disabled:text-neutral-300">
+          <fa-icon [icon]="Previous"></fa-icon>
         </button>
         <!-- Pages -->
-        <div class="flex gap-0.5">
-          @for (page of [].constructor(totalPages); track $index) {
-            <button (click)="goToPage($index + 1)" [ngClass]="{'bg-main text-white': currentPage === ($index + 1)}" class="w-7 h-7 rounded-full outline-none hover:bg-main hover:text-white duration-300">
-              {{ $index + 1 }}
+        <div class="flex items-center gap-1">
+          @for (page of pageNumbers; track page) {
+            <button type="button" (click)="goToPage(page)" [attr.aria-label]="'Página ' + page" [attr.aria-current]="currentPage === page ? 'page' : null" [ngClass]="currentPage === page ? 'bg-main text-white shadow-sm' : 'text-neutral-600 hover:bg-neutral-100'" class="h-9 min-w-9 rounded-xl px-2 text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-main">
+              {{ page }}
             </button>
           }
         </div>
         <!-- Next -->
-        <button (click)="nextPage()" [disabled]="currentPage === totalPages" [ngClass]="{'bg-neutral-200 hover:bg-neutral-200': currentPage === totalPages}" class="bg-main hover:bg-main-hover w-7 h-7 text-white rounded-full font-semibold text-sm">
-          <fa-icon class="text-sm" [icon]="Next"></fa-icon>
+        <button type="button" (click)="nextPage()" [disabled]="currentPage === totalPages" aria-label="Página siguiente" class="flex h-9 w-9 items-center justify-center rounded-xl text-neutral-600 outline-none transition hover:bg-neutral-100 focus-visible:ring-2 focus-visible:ring-main disabled:cursor-not-allowed disabled:text-neutral-300">
+          <fa-icon [icon]="Next"></fa-icon>
         </button>
-      </div>
+      </nav>
     </div>
   `,
   styles: ``,
@@ -209,7 +188,7 @@ export class TableComponent {
   dependencias = inject(DependenciasService).dependencias;
   usuarios = inject(UsuariosService).usuarios;
   documentos = inject(DocumentosService).documentos;
-  currentUser = inject(AuthService).usuarioLogged()!.uid;
+  currentUser = inject(AuthService).usuarioLogged;
 
   searchTerm: string = '';
   sortColumn: string = '';
@@ -242,6 +221,12 @@ export class TableComponent {
   filteredData: any[] = [];
   paginatedData: any[] = [];
 
+  get pageNumbers(): number[] {
+    const visibleCount = Math.min(this.totalPages, 5);
+    const start = Math.max(1, Math.min(this.currentPage - 2, this.totalPages - visibleCount + 1));
+    return Array.from({ length: visibleCount }, (_, index) => start + index);
+  }
+
   ngOnInit() {
     this.applyFilters();
   }
@@ -254,7 +239,7 @@ export class TableComponent {
 
   getNestedValue(obj: any, key: string): any {
     return key.split('.').reduce((acc, part) => {
-      if (!acc) return undefined;
+      if (acc === null || acc === undefined) return undefined;
 
       const arrayRegex = /^([a-zA-Z0-9_]+)\[(\d+)\]$/;
 
@@ -269,9 +254,69 @@ export class TableComponent {
     }, obj);
   }
 
-  getDateTransformed(date: Timestamp) {
-    const now = formatDate(date.toDate(), 'EEE dd MMM, HH:mm', 'es');
-    return now.replace(/\b\w/g, l => l.toUpperCase());;
+  getDateTransformed(value: unknown): string {
+    if (value === null || value === undefined || value === '') return '-';
+    try {
+      const date = value instanceof Timestamp
+        ? value.toDate()
+        : value instanceof Date || typeof value === 'string' || typeof value === 'number'
+          ? value
+          : null;
+      if (date === null || Number.isNaN(new Date(date).getTime())) return '-';
+      return formatDate(date, 'EEE dd MMM, HH:mm', 'es').replace(/\b\w/g, letter => letter.toUpperCase());
+    } catch {
+      return '-';
+    }
+  }
+
+  displayValue(value: unknown): string {
+    if (value === null || value === undefined || value === '') return '-';
+    if (typeof value === 'boolean') return value ? 'Sí' : 'No';
+    if (Array.isArray(value)) return value.map(item => this.displayValue(item)).join(', ') || '-';
+    if (typeof value === 'object') return '-';
+    return String(value);
+  }
+
+  getFormatLabel(value: unknown): string {
+    if (typeof value !== 'string' || !value.trim()) return 'Archivo';
+    const normalized = value.toLowerCase().trim();
+    const format = normalized.split('/').pop()!.split('.').pop()!;
+    if (normalized.includes('pdf')) return 'PDF';
+    if (normalized.includes('word') || format === 'doc' || format === 'docx') return 'Word';
+    if (normalized.includes('excel') || normalized.includes('sheet') || format === 'xls' || format === 'xlsx') return 'Excel';
+    if (normalized.includes('powerpoint') || normalized.includes('presentation') || format === 'ppt' || format === 'pptx') return 'PowerPoint';
+    return format.toUpperCase();
+  }
+
+  formatFileSize(value: unknown): string {
+    if (value === null || value === undefined || value === '') return '-';
+    const bytes = Number(value);
+    return Number.isFinite(bytes) && bytes >= 0 ? `${(bytes / 1024 / 1024).toFixed(2)} MB` : '-';
+  }
+
+  getCellText(row: any, header: { key: string; isDate?: boolean; isDependencia?: boolean; isDocumento?: boolean; isFormat?: boolean; isSize?: boolean; isRole?: boolean }): string {
+    const value = this.getNestedValue(row, header.key);
+    if (value === null || value === undefined) return '';
+
+    const values = [this.displayValue(value)];
+    if (header.isDate) {
+      values.push(this.getDateTransformed(value));
+      const dateNumber = this.toDateNumber(value);
+      if (dateNumber) values.push(new Date(dateNumber).toISOString());
+    }
+    if (header.isDependencia) values.push(this.getDependenciaName(String(value)));
+    if (header.isDocumento) values.push(this.getDocumentoName(String(value)));
+    if (header.isFormat) values.push(this.getFormatLabel(value));
+    if (header.isSize) values.push(this.formatFileSize(value));
+    if (header.isRole) {
+      const roleLabels: Record<string, string> = { SUPERADMIN: 'ADMIN', BOSS: 'JEFE', OPERATOR: 'ASISTENTE' };
+      values.push(roleLabels[String(value)] ?? '');
+    }
+    return values.filter(Boolean).join(' ').toLocaleLowerCase('es');
+  }
+
+  getRowKey(row: any, index: number): string | number {
+    return row?.id ?? row?.uid ?? row?.codigo ?? row?.codigoTicket ?? index;
   }
 
   getDependenciaName(dependenciaId: string) {
@@ -287,6 +332,7 @@ export class TableComponent {
   onSearch(event: Event) {
     const target = event.target as HTMLInputElement;
     this.searchTerm = target.value;
+    this.currentPage = 1;
     this.applyFilters();
   }
 
@@ -298,12 +344,14 @@ export class TableComponent {
   }
 
   applyFilters() {
-    // Filtrado por búsqueda
-    this.filteredData = this.data.filter(row =>
-      this.tableConstructor.some(col =>
-        this.getNestedValue(row, col.key)?.toString().toLowerCase().includes(this.searchTerm.toLowerCase())
-      )
-    );
+    const normalizedSearch = this.searchTerm.trim().toLocaleLowerCase('es');
+    this.filteredData = this.data.filter(row => !normalizedSearch || this.tableConstructor.some(header => {
+      const rawValue = this.getNestedValue(row, header.key);
+      const rawText = rawValue === null || rawValue === undefined ? '' : String(rawValue).toLocaleLowerCase('es');
+      return rawText.includes(normalizedSearch) || this.getCellText(row, header).includes(normalizedSearch);
+    }));
+
+    if (this.sortColumn) this.sortFilteredData();
 
     // Total de páginas
     this.totalPages = Math.ceil(this.filteredData.length / this.pageSize) || 1;
@@ -324,16 +372,40 @@ export class TableComponent {
       this.sortDirection = 'asc';
     }
 
-    this.filteredData.sort((a, b) => {
-      const valA = this.getNestedValue(a, header)?.toString().toLowerCase() ?? '';
-      const valB = this.getNestedValue(b, header)?.toString().toLowerCase() ?? '';
-
-      if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
-      if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
-      return 0;
-    });
+    this.currentPage = 1;
+    this.sortFilteredData();
 
     this.updatePagination();
+  }
+
+  private sortFilteredData() {
+    const header = this.tableConstructor.find(column => column.key === this.sortColumn);
+    if (!header) return;
+
+    this.filteredData.sort((a, b) => {
+      const valueA = this.getNestedValue(a, this.sortColumn);
+      const valueB = this.getNestedValue(b, this.sortColumn);
+      let comparison: number;
+
+      if (header.isDate) {
+        comparison = this.toDateNumber(valueA) - this.toDateNumber(valueB);
+      } else if (typeof valueA === 'number' && typeof valueB === 'number') {
+        comparison = valueA - valueB;
+      } else {
+        comparison = this.getCellText(a, header).localeCompare(this.getCellText(b, header), 'es', { numeric: true, sensitivity: 'base' });
+      }
+
+      return this.sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }
+
+  private toDateNumber(value: unknown): number {
+    if (value instanceof Timestamp) return value.toMillis();
+    if (value instanceof Date || typeof value === 'string' || typeof value === 'number') {
+      const time = new Date(value).getTime();
+      return Number.isNaN(time) ? 0 : time;
+    }
+    return 0;
   }
 
   updatePagination() {
@@ -359,7 +431,7 @@ export class TableComponent {
   }
 
   goToPage(page: number) {
-    this.currentPage = page;
+    this.currentPage = Math.max(1, Math.min(page, this.totalPages));
     this.updatePagination();
   }
 }
