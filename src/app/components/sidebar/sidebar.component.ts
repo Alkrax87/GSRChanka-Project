@@ -1,7 +1,7 @@
 import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faAngleDown, faArrowRightFromBracket, faBuilding, faChartSimple, faEnvelope, faEnvelopeOpenText, faFileLines, faFilePen, faHammer, faHome, faPaperPlane, faFolderOpen, faUserShield, IconDefinition, faFolderClosed, faFolder } from '@fortawesome/free-solid-svg-icons';
+import { faAngleDown, faArrowRightFromBracket, faBuilding, faChartSimple, faEnvelope, faEnvelopeOpenText, faFileLines, faFilePen, faHammer, faHome, faPaperPlane, faFolderOpen, faUserShield, IconDefinition, faFolderClosed, faFolder, faBoxArchive } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../services/auth.service';
 import { LogOutComponent } from '../log-out/log-out.component';
 
@@ -185,6 +185,7 @@ export class SidebarComponent {
       sectionName: 'Gestión',
       allowedRoles: ['BOSS', 'OPERATOR'],
       routes: [
+        { name: 'Repositorio digital', icon: faBoxArchive, route: '/portal/repositorio-digital' },
         { name: 'Documentos', icon: faFileLines, route: '/portal/documentos' },
         {
           name: 'Trámites',

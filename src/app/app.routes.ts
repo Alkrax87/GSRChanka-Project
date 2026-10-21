@@ -16,6 +16,7 @@ import { EnviadosComponent } from './pages/portal/tramites/enviados/enviados.com
 import { IniciadosComponent } from './pages/portal/tramites/iniciados/iniciados.component';
 import { ExpedientesCerradosComponent } from './pages/portal/expedientes/cerrados/cerrados.component';
 import { ExpedientesIniciadosComponent } from './pages/portal/expedientes/iniciados/iniciados.component';
+import { RepositorioDigitalComponent } from './pages/portal/repositorio-digital/repositorio-digital.component';
 
 const redirectLoggedIn = () => redirectLoggedInTo(['portal/home']);
 const redirectUnauthorizedUser = () => redirectUnauthorizedTo(['login']);
@@ -42,6 +43,7 @@ export const routes: Routes = [
       { path: 'obras', component: ObrasComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN'] } },
       { path: 'dashboard', component: DashboardComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN', 'BOSS'] } },
       { path: 'documentos', component: DocumentosComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN', 'BOSS', 'OPERATOR'] } },
+      { path: 'repositorio-digital', component: RepositorioDigitalComponent, canActivate: [roleGuard], data: { allowedRoles: ['BOSS', 'OPERATOR'] } },
       { path: 'tramitesR', component: RecibidosComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN', 'BOSS', 'OPERATOR'] } },
       { path: 'tramitesE', component: EnviadosComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN', 'BOSS', 'OPERATOR'] } },
       { path: 'tramitesI', component: IniciadosComponent, canActivate: [roleGuard], data: { allowedRoles: ['SUPERADMIN', 'BOSS', 'OPERATOR'] } },
